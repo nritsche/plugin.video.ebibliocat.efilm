@@ -7,73 +7,103 @@ import urllib.parse
 from bs4 import BeautifulSoup
 
 
-from resources.lib.tv3cat import DirAZemisio
-from resources.lib.tv3cat import DirAZtots
-from resources.lib.tv3cat import Home
-from resources.lib.tv3cat.Images import Images
-from resources.lib.tv3cat import Sections
+from resources.lib.ebibliocat import DirAZemisio
+from resources.lib.ebibliocat import DirAZtots
+from resources.lib.ebibliocat import Home
+from resources.lib.ebibliocat.Images import Images
+from resources.lib.ebibliocat import Sections
 from resources.lib.utils import Urls
 from resources.lib.video.FolderVideo import FolderVideo
 from resources.lib.video.Video import Video
-from resources.lib.tv3cat.TV3Strings import TV3Strings
+from resources.lib.ebibliocat.EBiblioStrings import EBiblioStrings
 from resources.lib.utils.Utils import *
 
 
-class TV3cat(object):
+class EBibliocat(object):
     def __init__(self, addon_path, addon):
-        self.strs = TV3Strings(addon)
+        self.strs = EBiblioStrings(addon)
         self.images = Images(addon_path)
         self.addon_path = addon_path
 
-        xbmc.log("plugin.video.tv3.cat classe TV3cat - init() ")
+        xbmc.log("plugin.video.ebibliocat.efilm classe EBibliocat - init() ")
 
     # mode = None
     def listHome(self):
-        xbmc.log("plugin.video.tv3.cat classe Tv3cat - listHome() ")
+        xbmc.log("plugin.video.ebibliocat.efilm classe EBibliocat - listHome() ")
 
         return Home.getList(self.strs)
 
     # mode = destaquem
-    def listDestaquem(self):
-        xbmc.log("plugin.video.tv3.cat classe Tv3cat - listDestaquem() ")
-        html_destacats = getHtml(Urls.url_alacarta)
+    def listPopular(self):
+        xbmc.log("plugin.video.ebibliocat.efilm classe EBibliocat - listPopular() ")
+        print("plugin.video.ebibliocat.efilm classe EBibliocat - listPopular() ")
+
+        html_destacats = getHtml(Urls.url_popular)
 
         lVideos = []
 
         if html_destacats:
-
+            #print(f"/n/n/n/{html_destacats}")
             soup = BeautifulSoup(html_destacats, "html.parser")
+            #print(soup)
             dest = None
 
             try:
+                json_data = soup.find('script', id="__NEXT_DATA__", type="application/json")
 
-                destacats = soup.findAll("article", {"class": re.compile("M-destacat")})
+                json_data = json.loads(list(json_data.children)[0])["props"]["pageProps"]["productsProp"]["results"]
+                # identifying the required elements and obtaining it by sub string
+                #data = str(json_data)[str(json_data).find('__NEXT_DATA__ = '):str(json_data).find('module={}')]
+                #data = json.loads(data.replace('__NEXT_DATA__ = ', ''))
+                #print("\n\n\n\nFILMS:\n\n")
+                #print(json_data)
+                #print("...")
+                #destacats = soup.findAll("article", {"class": re.compile("cover-content")})
 
 
-                destacats2 = soup.findAll("div", {"class": re.compile("swiper-slide")})
+                #destacats2 = soup.findAll("div", {"class": re.compile("swiper-slide")})
 
-                destacats.extend(destacats2)
+                #destacats.extend(destacats2)
 
-                for c in destacats:
-                    a = c.a["href"]
-                    code = a[-8:-1]
+                for c in json_data:
+                    # a = c.a["href"]
+                    # #code = a[-8:-1]
+                    print(c)
+                    products = c["products"]
+                    print(products)
+                    id = products["id"]
+                    slug = products["slug"]
+                    print(slug)
+                    film_url = Urls.url_base + f"en/audiovisual-detail/{id}/{slug}"
+                    print(film_url)
 
 
-                    html_data = getHtml(Urls.url_datavideos + code + '&profile=pc')
+                    html_data = getHtml(film_url)
+                    soup = BeautifulSoup(html_data, "html.parser")
 
-                    html_data = html_data.decode("ISO-8859-1")
-                    data = json.loads(html_data)
+                    print("\n\n\n\n\n\/n/n/n/n/n/n/n/n")
+                    
+                    json_data = soup.find('script', id="__NEXT_DATA__", type="application/json")
+                    json_data = json.loads(list(json_data.children)[0])["props"]["pageProps"]["productInit"]
+                    #print(json.dumps(json_data, indent=4))
 
-                    if len(data) > 0:
-                        video = self.getVideo(data)
+                    # data = json.loads(html_data)
+
+                    if len(html_data) > 0:
+                        video = self.getVideo(json_data)
                         lVideos.append(video)
 
             except AttributeError as e:
                 xbmc.log("Exception AtributeError Altres items: " + str(e))
+                print("Exception AtributeError Altres items: " + str(e))
             except KeyError as e:
                 xbmc.log("Exception KeyError Altres items: " + str(e))
+                print("Exception KeyError Altres items: " + str(e))
+
             except Exception as e:
                 xbmc.log("Exception Item destacat: " + str(e))
+                print("Exception Item destacat: " + str(e))
+
 
         xbmc.log("listDestaquem len: " + str(len(lVideos)))
 
@@ -606,74 +636,60 @@ class TV3cat(object):
 
     def getVideo(self, data):
         linkvideo = None
-        media = data.get('media', {})
+        urlVideo = data["url_embedded"]
 
-        if type(media) is list and len(media) > 0:
-            media_dict = media[0]
-            linkvideo = media_dict.get('url', None)
+        titol = data["name"]
+        image = data["cover"]
+        descripcio = data["description"]
+        programa = None
+        capitol = None
+        tematica = data.get('genres', [None])[0].get('name', None)
+        data_emisio = None
+        minutes = data["duration"]
+        durada = ""
+
+        if minutes != None:
+            durada = minutes * 60
+
+
+        if descripcio == None:
+            descripcio = ''
         else:
-            linkvideo = media.get('url', None)
+            descripcio = descripcio.replace('<br />', '')
 
-        if linkvideo != None:
-            if type(linkvideo) is list and len(linkvideo) > 0:
-                linkvideo_item = linkvideo[0]
-                urlVideo = linkvideo_item.get('file', None)
+        header = ""
+        if programa != None:
+            if type(programa) is int or type(programa) is float:
+                programa = str(programa)
+            header = '[B]' + programa + '[/B]' + '[CR]'
 
-            titol = data.get('informacio', {}).get('titol', None)
-            image = data.get('imatges', {}).get('url', None)
-            descripcio = data.get('informacio', {}).get('descripcio', None)
-            programa = data.get('informacio', {}).get('programa', None)
-            capitol = data.get('informacio', {}).get('capitol', None)
-            tematica = data.get('informacio', {}).get('tematica', {}).get('text', None)
-            data_emisio = data.get('informacio', {}).get('data_emissio', {}).get('text', None)
-            milisec = data.get('informacio', {}).get('durada', {}).get('milisegons', None)
-            durada = ""
+        infolabels = {}
+        if data_emisio != None:
+            dt = data_emisio[0:10]
+            year = data_emisio[6:10]
+            infolabels['aired'] = dt
+            infolabels['year'] = year
+            header = header + dt + '[CR]'
 
-            if milisec != None:
-                durada = milisec // 1000
+        descripcio = header + descripcio
 
-
-            if descripcio == None:
-                descripcio = ''
-            else:
-                descripcio = descripcio.replace('<br />', '')
-
-            header = ""
-            if programa != None:
-                if type(programa) is int or type(programa) is float:
-                    programa = str(programa)
-                header = '[B]' + programa + '[/B]' + '[CR]'
-
-            infolabels = {}
-            if data_emisio != None:
-                dt = data_emisio[0:10]
-                year = data_emisio[6:10]
-                infolabels['aired'] = dt
-                infolabels['year'] = year
-                header = header + dt + '[CR]'
-
-            descripcio = header + descripcio
-
-            if titol != None:
-                infolabels['title'] = titol
+        if titol != None:
+            infolabels['title'] = titol
 
 
-            if capitol != None:
-                infolabels['episode'] = capitol
+        if capitol != None:
+            infolabels['episode'] = capitol
 
 
-            if descripcio != None:
-                infolabels['plot'] = descripcio
+        if descripcio != None:
+            infolabels['plot'] = descripcio
 
-            if tematica != None:
-                infolabels['genre'] = tematica
+        if tematica != None:
+            infolabels['genre'] = tematica
 
-            video = Video(titol, image, image, infolabels, urlVideo, durada )
-
-            return video
-
-        else:
-            return None
+        video = Video(titol, image, image, infolabels, urlVideo, durada )
+        print(video)
+        return video
 
     #mode = cercar
     def search(self):

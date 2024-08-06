@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-url_base = 'http://www.ccma.cat'
+url_base = 'http://ebibliocat.efilm.info/'
+url_popular = 'http://ebibliocat.efilm.info/en/lists/1188/las-peliculas-mas-populares'
+
 url_alacarta = 'http://www.ccma.cat/tv3/alacarta/'
 url_coleccions = 'http://www.ccma.cat/tv3/alacarta/coleccions/'
 url_mesvist = 'http://www.ccma.cat/tv3/alacarta/mes-vist/'

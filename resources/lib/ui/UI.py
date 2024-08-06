@@ -1,7 +1,7 @@
 from builtins import str
 from builtins import object
 from resources.lib.utils.Utils import buildUrl
-from resources.lib.tv3cat.TV3cat import TV3cat
+from resources.lib.ebibliocat.EBibliocat import EBibliocat
 import xbmcaddon
 import xbmcplugin
 import xbmcgui
@@ -15,37 +15,37 @@ class UI(object):
     def __init__(self, base_url, addon_handle, args):
         addon = xbmcaddon.Addon()
         addon_path = xbmcvfs.translatePath(addon.getAddonInfo('path'))
-        self.tv3 = TV3cat(addon_path, addon)
+        self.ebiblio = EBibliocat(addon_path, addon)
         self.base_url = base_url
         self.addon_handle = addon_handle
         self.args = args
         self.mode = args.get('mode', None)
         self.url = args.get('url', [''])
         self.name = args.get('name', None)
-        xbmc.log("plugin.video.tv3.cat classe UI - init() ")
+        xbmc.log("plugin.video.ebibliocat.efilm classe UI - init() ")
 
 
     def run(self, mode, url):
-        xbmc.log("plugin.video.tv3.cat classe UI - run()  mode = " + str(mode))
+        xbmc.log("plugin.video.ebibliocat.efilm classe UI - run()  mode = " + str(mode))
 
 
         if mode == None:
-            xbmc.log("plugin.video.tv3.cat classe UI - mode = None")
-            lFolder = self.tv3.listHome()
-
+            xbmc.log("plugin.ebibliocat.tv3.efilm classe UI - mode = None")
+            lFolder = self.ebiblio.listHome()
+            xbmc.log(lFolder)
             if len(lFolder) > 0:
                 self.listFolder(lFolder)
             else:
                 xbmc.log("UI.run() Home - No existeixen elements")
 
-        elif mode[0] == 'destaquem':
-            xbmc.log("plugin.video.tv3.cat classe UI - mode = destaquem")
-            lVideos = self.tv3.listDestaquem()
+        elif mode[0] == 'popular':
+            xbmc.log("plugin.video.ebibliocat.efilm classe UI - mode = las-peliculas-mas-populares")
+            lVideos = self.ebiblio.listPopular()
 
             if len(lVideos) > 0:
                 self.listVideos(lVideos)
             else:
-                xbmc.log("UI.run() destaquem - No existeixen videos")
+                xbmc.log("UI.run() popular - No existeixen videos")
 
 
         elif mode[0] == 'noperdis':
@@ -141,7 +141,7 @@ class UI(object):
             self.playVideo(url[0])
 
     def listFolder(self, lFolderVideos):
-        xbmc.log("plugin.video.tv3.cat classe UI - listFolder")
+        xbmc.log(f"plugin.video.ebibliocat.efilm classe UI - listFolder: {lFolderVideos}")
         for folder in lFolderVideos:
 
             mode = folder.mode
@@ -152,6 +152,7 @@ class UI(object):
             thumbImage = folder.thumbnailImage
 
             urlPlugin = buildUrl({'mode': mode, 'name': nameQuoted, 'url': url}, self.base_url)
+            xbmc.log(urlPlugin)
             liz = xbmcgui.ListItem(name)
             liz.setInfo(type="Video", infoLabels={"title": name})
             liz.setArt({'thumb': thumbImage, 'icon' : iconImage})

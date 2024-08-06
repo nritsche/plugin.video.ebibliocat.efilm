@@ -1,10 +1,10 @@
 from builtins import object
-class TV3Strings(object):
+class EBiblioStrings(object):
 
     def __init__(self, addon):
         self.addon = addon
         self.strs = {
-            'avuidestaquem': 30001,
+            'popular': 30001,
             'noperdis': 30002,
             'mesvist': 30003,
             'programes': 30004,
