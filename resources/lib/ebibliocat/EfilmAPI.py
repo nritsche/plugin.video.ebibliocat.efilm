@@ -3,6 +3,8 @@ from __future__ import absolute_import
 import json
 import os
 import socket
+import time
+from concurrent.futures import ThreadPoolExecutor
 import urllib.error
 import urllib.request
 
@@ -104,6 +106,68 @@ class EfilmSession(object):
         self.access_token = access
         self._save_session(refresh, {})
 
+    def visible_lists(self):
+        entries = []
+        page = 1
+        while True:
+            result = self._request(
+                "GET", "products/visible-lists/?visible=true&page_size=100"
+                "&elements_page_size=1&order_by=name,id&page=" + str(page)
+            )
+            entries.extend(result["results"])
+            if not (result.get("links") or {}).get("next"):
+                return entries
+            page += 1
+
+    def list_elements(self, list_id, page=1):
+        return self._request(
+            "GET", "products/lists/{}/elements-by-id/?page_size=24&page={}".format(
+                int(list_id), int(page)
+            )
+        )
+
+    def series(self, page=1):
+        return self._request(
+            "GET", "videos/series/?visible=true&page_size=24&page=" + str(int(page))
+        )
+
+    def series_detail(self, series_id):
+        return self._request("GET", "products/collections/{}/".format(int(series_id)))
+
+    def genres(self):
+        return self._request("GET", "products/genres/audiovisual-available/")
+
+    def movies(self, refresh=False):
+        cache_path = os.path.join(self.profile, "movie-catalog.json")
+        if not refresh:
+            try:
+                with open(cache_path, "r") as source:
+                    cache = json.load(source)
+                if time.time() - cache["updated"] < 21600:
+                    return cache["products"]
+            except (OSError, ValueError, KeyError, TypeError):
+                pass
+
+        def fetch(page):
+            return self._request(
+                "GET", "products/products/relevant/?skip_chapters=true&page_size=200"
+                "&fields=id,name,slug,cover,genres,type,duration,year,description&page="
+                + str(page)
+            )
+
+        first = fetch(1)
+        products = list(first["results"])
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            for result in executor.map(fetch, range(2, int(first["total_pages"]) + 1)):
+                products.extend(result["results"])
+        products = list({p["id"]: p for p in products}.values())
+        os.makedirs(self.profile, mode=0o700, exist_ok=True)
+        temporary = cache_path + "." + str(os.getpid()) + ".tmp"
+        with open(temporary, "w") as target:
+            json.dump({"updated": time.time(), "products": products}, target)
+        os.replace(temporary, cache_path)
+        return products
+
     def saved_loan(self, product_id):
         return self._load_session().get("loans", {}).get(str(product_id))
 
@@ -168,6 +232,7 @@ class EfilmSession(object):
     def _request(self, method, path, payload=None, access_token=None):
         headers = {
             "Accept": "application/json",
+            "Origin": "https://ebibliocat.efilm.info",
             "Accept-Language": LANGUAGE,
             "Content-Type": "application/json",
             "localization": json.dumps(self.localization, separators=(",", ":")),

@@ -20,6 +20,7 @@ from resources.lib.video.FolderVideo import FolderVideo
 from resources.lib.video.Video import Video
 from resources.lib.ebibliocat.EBiblioStrings import EBiblioStrings
 from resources.lib.ebibliocat.EfilmAPI import EfilmError, EfilmSession
+from resources.lib.ebibliocat.Catalog import movie_page, episode_product
 from resources.lib.utils.Utils import *
 
 
@@ -39,7 +40,7 @@ class EBibliocat(object):
     def signOut(self):
         self.session.clear()
 
-    def playProduct(self, product_id, slug, handle):
+    def playProduct(self, product_id, slug, handle, series_id=None, series_slug=None):
         def fail(message):
             xbmcgui.Dialog().notification("eBiblioCat eFilm", message, xbmcgui.NOTIFICATION_ERROR, 6000)
             xbmcplugin.setResolvedUrl(handle, False, xbmcgui.ListItem())
@@ -49,7 +50,10 @@ class EBibliocat(object):
                 fail("Choose Sign in to eFilm from the add-on menu first.")
                 return
 
-            detail_url = Urls.url_base + "en/audiovisual-detail/{}/{}".format(product_id, slug)
+            if series_id is not None:
+                detail_url = Urls.url_base + "en/series-detail/{}/{}".format(series_id, series_slug)
+            else:
+                detail_url = Urls.url_base + "en/audiovisual-detail/{}/{}".format(product_id, slug)
             detail_html = getHtml(detail_url)
             if not detail_html:
                 fail("Could not load this title from eFilm.")
@@ -57,7 +61,8 @@ class EBibliocat(object):
             detail_soup = BeautifulSoup(detail_html, "html.parser")
             detail_script = detail_soup.find("script", id="__NEXT_DATA__", type="application/json")
             page_props = json.loads(detail_script.string)["props"]["pageProps"]
-            product = page_props["productInit"]
+            product = (episode_product(page_props["collectionProp"], product_id)
+                       if series_id is not None else page_props["productInit"])
             self.session.set_localization_from_headers(page_props.get("headers"))
 
             languages = product.get("languages") or []
@@ -254,76 +259,100 @@ class EBibliocat(object):
 
         return item
 
-    # mode = None
     def listHome(self):
-        xbmc.log("plugin.video.ebibliocat.efilm classe EBibliocat - listHome() ")
+        return [FolderVideo(name, "1", mode, "", "") for name, mode in (
+            ("All movies (A–Z)", "movies"), ("Movies by genre", "genres"),
+            ("Lists", "lists"), ("Series", "series"),
+        )]
 
-        html_home = getHtml(Urls.url_home)
-        print(html_home)
-        soup = BeautifulSoup(html_home, "html.parser")
-
+    def listLists(self):
         try:
-            json_data = soup.find('script', id="__NEXT_DATA__", type="application/json")
-
-            json_data = json.loads(list(json_data.children)[0])["props"]["pageProps"]#["productsProp"]["results"]
-            #print(json_data)
-            # identifying the required elements and obtaining it by sub string
-            #data = str(json_data)[str(json_data).find('__NEXT_DATA__ = '):str(json_data).find('module={}')]
-            #data = json.loads(data.replace('__NEXT_DATA__ = ', ''))
-            #print("\n\n\n\nFILMS:\n\n")
-            #print(json_data)
-            #print("...")
-            #destacats = soup.findAll("article", {"class": re.compile("cover-content")})
-
-
-            #destacats2 = soup.findAll("div", {"class": re.compile("swiper-slide")})
-
-            #destacats.extend(destacats2)
-
-            for c in json_data:
-                # a = c.a["href"]
-                # #code = a[-8:-1]
-                print(c)
-                products = c["products"]
-                print(products)
-                id = products["id"]
-                slug = products["slug"]
-                print(slug)
-                film_url = Urls.url_base + f"en/audiovisual-detail/{id}/{slug}"
-                print(film_url)
-
-
-                html_data = getHtml(film_url)
-                soup = BeautifulSoup(html_data, "html.parser")
-
-                print("\n\n\n\n\n\/n/n/n/n/n/n/n/n")
-                
-                json_data = soup.find('script', id="__NEXT_DATA__", type="application/json")
-                json_data = json.loads(list(json_data.children)[0])["props"]["pageProps"]["productInit"]
-                #print(json.dumps(json_data, indent=4))
-
-                # data = json.loads(html_data)
-
-                if len(html_data) > 0:
-                    video = self.getVideo(json_data)
-                    lVideos.append(video)
-
-        except AttributeError as e:
-            xbmc.log("Exception AtributeError Altres items: " + str(e))
-            print("Exception AtributeError Altres items: " + str(e))
-        except KeyError as e:
-            xbmc.log("Exception KeyError Altres items: " + str(e))
-            print("Exception KeyError Altres items: " + str(e))
-
-        except Exception as e:
-            xbmc.log("Exception Item destacat: " + str(e))
-            print("Exception Item destacat: " + str(e))
-
-        #popular = FolderVideo(strings.get('popular'), "", "popular", "", "")
-
-
-
+            entries = self.session.visible_lists()
+            folders = Home.from_entries(entries)
+            if folders:
+                return folders
+        except (EfilmError, AttributeError, KeyError, TypeError, ValueError) as error:
+            xbmc.log("eFilm collection directory unavailable: " + str(error), xbmc.LOGWARNING)
         return Home.getList(self.strs)
+
+    def listCollection(self, list_id, page=1):
+        videos = []
+        next_folder = None
+        try:
+            result = self.session.list_elements(list_id, page)
+            for entry in result["results"]:
+                series = entry.get("collections")
+                if series and series.get("type") == "serie":
+                    videos.append(FolderVideo(
+                        series["name"], "1", "series:" + str(series["id"]),
+                        series.get("cover") or "", series.get("cover") or "",
+                    ))
+                    continue
+                product = entry.get("products") or {}
+                if product.get("type") != "audiovisual":
+                    continue
+                # Full metadata and language tracks are loaded when playback starts.
+                product = dict(product, languages=[])
+                video = self.getVideo(product)
+                if video:
+                    videos.append(video)
+            if (result.get("links") or {}).get("next"):
+                next_folder = FolderVideo(
+                    "Next page", str(page + 1), "collection:" + str(list_id), "", ""
+                )
+        except (EfilmError, AttributeError, KeyError, TypeError, ValueError) as error:
+            xbmc.log("eFilm collection load failed: " + str(error), xbmc.LOGERROR)
+            xbmcgui.Dialog().notification(
+                "eBiblioCat eFilm", "Could not load this collection. Try again.",
+                xbmcgui.NOTIFICATION_ERROR, 6000,
+            )
+        return [videos, next_folder]
+
+    def listMovies(self, page=1, genre_id=None):
+        products, has_next = movie_page(self.session.movies(), page, genre_id)
+        videos = [self.getVideo(dict(p, languages=[])) for p in products]
+        mode = "movies" if genre_id is None else "genre:" + str(genre_id)
+        following = (FolderVideo("Next page", str(page + 1), mode, "", "")
+                     if has_next else None)
+        return [videos, following]
+
+    def listGenres(self):
+        return [FolderVideo(g["name"], "1", "genre:" + str(g["id"]), "", "")
+                for g in self.session.genres()]
+
+    def listSeries(self, page=1):
+        result = self.session.series(page)
+        folders = [FolderVideo(
+            p["name"], "1", "series:" + str(p["id"]), p.get("cover") or "",
+            p.get("cover") or "",
+        ) for p in result["results"]]
+        if (result.get("links") or {}).get("next"):
+            folders.append(FolderVideo("Next page", str(page + 1), "series", "", ""))
+        return folders
+
+    def listSeasons(self, series_id):
+        detail = self.session.series_detail(series_id)
+        return [FolderVideo(
+            "Season " + str(season["season"]), str(season["season"]),
+            "season:" + str(series_id), detail.get("cover") or "",
+            detail.get("cover") or "",
+        ) for season in detail.get("seasons", []) if season.get("chapters")]
+
+    def listEpisodes(self, series_id, season_number):
+        detail = self.session.series_detail(series_id)
+        videos = []
+        for season in detail.get("seasons", []):
+            if str(season["season"]) == str(season_number):
+                for product in season.get("chapters", []):
+                    video = self.getVideo(dict(product, languages=[]))
+                    if video:
+                        video.url = "efilm://episode/{}/{}/{}/{}".format(
+                            series_id, detail.get("slug") or "series",
+                            product["id"], product.get("slug") or "episode",
+                        )
+                        videos.append(video)
+                break
+        return [videos, None]
 
     # mode = destaquem
     def listPopular(self, section):

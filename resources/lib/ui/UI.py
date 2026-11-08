@@ -56,6 +56,40 @@ class UI(object):
             xbmcplugin.endOfDirectory(self.addon_handle)
             xbmc.executebuiltin("Container.Refresh")
 
+        elif mode[0] in ('lists', 'genres', 'series') or mode[0].startswith('series:'):
+            try:
+                if mode[0] == 'lists':
+                    folders = self.ebiblio.listLists()
+                elif mode[0] == 'genres':
+                    folders = self.ebiblio.listGenres()
+                elif mode[0] == 'series':
+                    folders = self.ebiblio.listSeries(int(url[0] or 1))
+                else:
+                    folders = self.ebiblio.listSeasons(mode[0].split(':', 1)[1])
+                self.listFolder(folders)
+            except (EfilmError, KeyError, TypeError, ValueError) as error:
+                xbmc.log("eFilm directory error: " + str(error), xbmc.LOGERROR)
+                xbmcgui.Dialog().notification("eBiblioCat eFilm", "Could not load this directory.")
+                self.listFolder([])
+
+        elif mode[0] == 'movies' or mode[0].startswith(('genre:', 'season:')):
+            try:
+                if mode[0].startswith('season:'):
+                    result = self.ebiblio.listEpisodes(mode[0].split(':', 1)[1], url[0])
+                else:
+                    genre = mode[0].split(':', 1)[1] if ':' in mode[0] else None
+                    result = self.ebiblio.listMovies(int(url[0] or 1), genre)
+                self.listVideos(result)
+            except (EfilmError, KeyError, TypeError, ValueError, OSError) as error:
+                xbmc.log("eFilm catalog error: " + str(error), xbmc.LOGERROR)
+                xbmcgui.Dialog().notification("eBiblioCat eFilm", "Could not load this catalog.")
+                self.listVideos([[], None])
+
+        elif mode[0].startswith('collection:'):
+            self.listVideos(self.ebiblio.listCollection(
+                mode[0].split(':', 1)[1], int(url[0] or 1)
+            ))
+
         elif mode[0] == 'sections':
 
             lFolder = self.tv3.programsSections(url[0])
@@ -118,7 +152,16 @@ class UI(object):
             self.listFolder(lFolder)
 
         elif mode[0] == 'playVideo':
-            if url[0].startswith('efilm://product/'):
+            if url[0].startswith('efilm://episode/'):
+                parts = url[0].split('/')
+                if len(parts) == 7:
+                    self.ebiblio.playProduct(
+                        parts[5], parts[6], self.addon_handle,
+                        series_id=parts[3], series_slug=parts[4],
+                    )
+                else:
+                    xbmcplugin.setResolvedUrl(self.addon_handle, False, xbmcgui.ListItem())
+            elif url[0].startswith('efilm://product/'):
                 parts = url[0].split('/')
                 if len(parts) >= 5:
                     self.ebiblio.playProduct(parts[-2], parts[-1], self.addon_handle)
@@ -168,7 +211,16 @@ class UI(object):
 
 
             for video in listVideos:
-                if video:
+                if isinstance(video, FolderVideo):
+                    folder_url = buildUrl({
+                        'mode': video.mode, 'name': '', 'url': video.url,
+                    }, self.base_url)
+                    item = xbmcgui.ListItem(video.name)
+                    item.setArt({'thumb': video.thumbnailImage, 'icon': video.iconImage})
+                    xbmcplugin.addDirectoryItem(
+                        handle=self.addon_handle, url=folder_url, listitem=item, isFolder=True,
+                    )
+                elif video:
                     urlVideo = video.url
                     xbmc.log("UI - listVideos - urlVideo: " + urlVideo)
                     iconImage = video.iconImage
