@@ -1,9 +1,9 @@
-# plugin.video.tv3.cat
-Kodi addon TV3cat. 
-Entertainment, news, sports, documentaries, etc from catalan television www.tv3.cat
+# plugin.video.ebibliocat.efilm
+Kodi addon eBiblioCat eFilm. 
+Entertainment, movies, series, documentaries, etc from the libraries of Barcelone ebibliocat.efilm.info
 
 Complement per Kodi - XBMC.  
-Tota la programació de TV3 a la carta. Llistes dels programes Més vistos, Destacats, No t'ho perdis, etc.
+Tota la programació de eBiblioCat eFilm. Llistes dels peliculas Més populares, Recien llegades, No t'ho perdis, etc.
 
 
 

@@ -17,8 +17,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgctxt "#30001"
-msgid "Today Featured"
-msgstr "Today Featured"
+msgid "The most popular movies"
+msgstr "The most popular movies"
 
 msgctxt "#30002"
 msgid "Don't miss"

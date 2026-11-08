@@ -32,48 +32,11 @@ class UI(object):
         if mode == None:
             xbmc.log("plugin.ebibliocat.tv3.efilm classe UI - mode = None")
             lFolder = self.ebiblio.listHome()
-            xbmc.log(lFolder)
+            xbmc.log(f"lfolder: {lFolder}")
             if len(lFolder) > 0:
                 self.listFolder(lFolder)
             else:
                 xbmc.log("UI.run() Home - No existeixen elements")
-
-        elif mode[0] == 'popular':
-            xbmc.log("plugin.video.ebibliocat.efilm classe UI - mode = las-peliculas-mas-populares")
-            lVideos = self.ebiblio.listPopular()
-
-            if len(lVideos) > 0:
-                self.listVideos(lVideos)
-            else:
-                xbmc.log("UI.run() popular - No existeixen videos")
-
-
-        elif mode[0] == 'noperdis':
-
-            lVideos = self.tv3.listNoPerdis()
-
-            if len(lVideos) > 0:
-                self.listVideos(lVideos)
-            else:
-                xbmc.log("UI.run() noperdis - No existeixen videos")
-
-        elif mode[0] == 'mesvist':
-
-            lVideos = self.tv3.listMesVist()
-
-            if len(lVideos) > 0:
-                self.listVideos(lVideos)
-            else:
-                xbmc.log("UI.run() mesvist - No existeixen videos")
-
-        elif mode[0] == 'programes':
-
-            lFolder = self.tv3.dirSections()
-
-            if len(lFolder) > 0:
-                self.listFolder(lFolder)
-            else:
-                xbmc.log("UI.run() programes - No existeixen elements")
 
         elif mode[0] == 'sections':
 
@@ -139,6 +102,14 @@ class UI(object):
         elif mode[0] == 'playVideo':
 
             self.playVideo(url[0])
+        else:
+            xbmc.log("plugin.video.ebibliocat.efilm classe UI - mode = las-peliculas-mas-populares")
+            lVideos = self.ebiblio.listPopular(mode[0])
+
+            if len(lVideos) > 0:
+                self.listVideos(lVideos)
+            else:
+                xbmc.log("UI.run() popular - No existeixen videos")
 
     def listFolder(self, lFolderVideos):
         xbmc.log(f"plugin.video.ebibliocat.efilm classe UI - listFolder: {lFolderVideos}")

@@ -31,14 +31,79 @@ class EBibliocat(object):
     def listHome(self):
         xbmc.log("plugin.video.ebibliocat.efilm classe EBibliocat - listHome() ")
 
+        html_home = getHtml(Urls.url_home)
+        print(html_home)
+        soup = BeautifulSoup(html_home, "html.parser")
+
+        try:
+            json_data = soup.find('script', id="__NEXT_DATA__", type="application/json")
+
+            json_data = json.loads(list(json_data.children)[0])["props"]["pageProps"]#["productsProp"]["results"]
+            #print(json_data)
+            # identifying the required elements and obtaining it by sub string
+            #data = str(json_data)[str(json_data).find('__NEXT_DATA__ = '):str(json_data).find('module={}')]
+            #data = json.loads(data.replace('__NEXT_DATA__ = ', ''))
+            #print("\n\n\n\nFILMS:\n\n")
+            #print(json_data)
+            #print("...")
+            #destacats = soup.findAll("article", {"class": re.compile("cover-content")})
+
+
+            #destacats2 = soup.findAll("div", {"class": re.compile("swiper-slide")})
+
+            #destacats.extend(destacats2)
+
+            for c in json_data:
+                # a = c.a["href"]
+                # #code = a[-8:-1]
+                print(c)
+                products = c["products"]
+                print(products)
+                id = products["id"]
+                slug = products["slug"]
+                print(slug)
+                film_url = Urls.url_base + f"en/audiovisual-detail/{id}/{slug}"
+                print(film_url)
+
+
+                html_data = getHtml(film_url)
+                soup = BeautifulSoup(html_data, "html.parser")
+
+                print("\n\n\n\n\n\/n/n/n/n/n/n/n/n")
+                
+                json_data = soup.find('script', id="__NEXT_DATA__", type="application/json")
+                json_data = json.loads(list(json_data.children)[0])["props"]["pageProps"]["productInit"]
+                #print(json.dumps(json_data, indent=4))
+
+                # data = json.loads(html_data)
+
+                if len(html_data) > 0:
+                    video = self.getVideo(json_data)
+                    lVideos.append(video)
+
+        except AttributeError as e:
+            xbmc.log("Exception AtributeError Altres items: " + str(e))
+            print("Exception AtributeError Altres items: " + str(e))
+        except KeyError as e:
+            xbmc.log("Exception KeyError Altres items: " + str(e))
+            print("Exception KeyError Altres items: " + str(e))
+
+        except Exception as e:
+            xbmc.log("Exception Item destacat: " + str(e))
+            print("Exception Item destacat: " + str(e))
+
+        #popular = FolderVideo(strings.get('popular'), "", "popular", "", "")
+
+
+
         return Home.getList(self.strs)
 
     # mode = destaquem
-    def listPopular(self):
+    def listPopular(self, section):
         xbmc.log("plugin.video.ebibliocat.efilm classe EBibliocat - listPopular() ")
         print("plugin.video.ebibliocat.efilm classe EBibliocat - listPopular() ")
 
-        html_destacats = getHtml(Urls.url_popular)
+        html_destacats = getHtml(Urls.url_populars[section])
 
         lVideos = []
 
@@ -647,6 +712,7 @@ class EBibliocat(object):
         data_emisio = None
         minutes = data["duration"]
         durada = ""
+        trailerUrl = data["trailer"]
 
         if minutes != None:
             durada = minutes * 60
@@ -687,7 +753,10 @@ class EBibliocat(object):
         if tematica != None:
             infolabels['genre'] = tematica
 
-        video = Video(titol, image, image, infolabels, urlVideo, durada )
+        if trailerUrl != None:
+            infolabels["trailer"] = trailerUrl
+
+        video = Video(titol, image, image, infolabels, urlVideo, durada)
         print(video)
         return video
 

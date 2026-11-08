@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.ebibliocat.efilm" name="eFilm eBiblioCat" version="0.0.1" provider-name="ricknitsche">
+<addon id="plugin.video.ebibliocat.efilm" name="eBiblioCat eFilm" version="0.0.1" provider-name="ricknitsche">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
 		<import addon="script.module.beautifulsoup4" version="4.6.3"/>
@@ -11,18 +11,18 @@
     <extension point="xbmc.addon.metadata">
         <platform>all</platform>
         <summary lang="en_GB">Entertainment, news, documentaries, etc from the libraries of Barcelona ebibliocat.efilm.info</summary>
-        <description lang="en_GB">Entertainment, news, documentaries, etc from the libraries of Barcelona ebibliocat.efilm.info. [CR]Featured shows, most viewed, A to Z programs. [CR]Live channels: TV3cat, K33, Super3, News 3/24, Esport3</description>
-        <summary lang="ca_ES">Tots els programes de TV3 a la carta.</summary>
-        <description lang="ca_ES">Tota la programació de TV3 a la carta. [CR]Les llistes dels més vistos, destacats, programes ordenats per ordre alfabètic. [CR]Els canals en directe: TV3cat, K33, Super3, 3/24 i Esport3 </description>
-        <summary lang="es_ES">Toda la programación de TV3 a la carta</summary>
-        <description lang="es_ES">Toda la programación de TV3 a la carta.[CR]Las listas de los más vistos, destacados, programas ordenados de la A a la Z. [CR]Canales en directo: TV3cat, K33, Super3, 3/24, Esport3</description>
+        <description lang="en_GB">Entertainment, news, documentaries, etc from the libraries of Barcelona ebibliocat.efilm.info. [CR]Most popular. [CR]Live channels: TV3cat, K33, Super3, News 3/24, Esport3</description>
+        <summary lang="ca_ES">Tots els programes de eBiblioCat eFilm.</summary>
+        <description lang="ca_ES">Tota la programació de eBiblioCat eFilm. [CR]Les llistes dels més populares. </description>
+        <summary lang="es_ES">Toda la programación de eBiblioCat eFilm</summary>
+        <description lang="es_ES">Toda la programación de eBiblioCat eFilm.[CR]Las listas de los más populares.</description>
         <language>ca</language>
         <license>GPL-2.0-or-later</license>
-        <source>https://github.com/jqandreu/plugin.video.tv3.cat</source>
-        <website>http://www.tv3.cat</website>
+        <source>https://github.com/nritsche/kodi.ebibliocat.plugin</source>
+        <website>https://ebibliocat.efilm.info/</website>
         <assets>
             <icon>resources/icon.png</icon>
-            <fanart>resources/fanart.jpg</fanart>
+            <fanart>resources/fanart.png</fanart>
         </assets>
     </extension>
 </addon>
