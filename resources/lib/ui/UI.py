@@ -2,6 +2,8 @@ from builtins import str
 from builtins import object
 from resources.lib.utils.Utils import buildUrl
 from resources.lib.ebibliocat.EBibliocat import EBibliocat
+from resources.lib.ebibliocat.EfilmAPI import EfilmError
+from resources.lib.video.FolderVideo import FolderVideo
 import xbmcaddon
 import xbmcplugin
 import xbmcgui
@@ -32,11 +34,27 @@ class UI(object):
         if mode == None:
             xbmc.log("plugin.ebibliocat.tv3.efilm classe UI - mode = None")
             lFolder = self.ebiblio.listHome()
+            account_label = "Sign out of eFilm" if self.ebiblio.session.has_session() else "Sign in to eFilm"
+            account_mode = "logout" if self.ebiblio.session.has_session() else "login"
+            lFolder.append(FolderVideo(account_label, "", account_mode, "", ""))
             xbmc.log(f"lfolder: {lFolder}")
             if len(lFolder) > 0:
                 self.listFolder(lFolder)
             else:
                 xbmc.log("UI.run() Home - No existeixen elements")
+
+        elif mode[0] == 'login':
+            xbmcplugin.endOfDirectory(self.addon_handle)
+            if self.signIn():
+                xbmc.executebuiltin(
+                    "Container.Update(plugin://plugin.video.ebibliocat.efilm.pitest/)"
+                )
+
+        elif mode[0] == 'logout':
+            self.ebiblio.signOut()
+            xbmcgui.Dialog().notification("eBiblioCat eFilm", "Signed out of eFilm.")
+            xbmcplugin.endOfDirectory(self.addon_handle)
+            xbmc.executebuiltin("Container.Refresh")
 
         elif mode[0] == 'sections':
 
@@ -100,8 +118,14 @@ class UI(object):
             self.listFolder(lFolder)
 
         elif mode[0] == 'playVideo':
-
-            self.playVideo(url[0])
+            if url[0].startswith('efilm://product/'):
+                parts = url[0].split('/')
+                if len(parts) >= 5:
+                    self.ebiblio.playProduct(parts[-2], parts[-1], self.addon_handle)
+                else:
+                    xbmcplugin.setResolvedUrl(self.addon_handle, False, xbmcgui.ListItem())
+            else:
+                self.playVideo(url[0])
         else:
             xbmc.log("plugin.video.ebibliocat.efilm classe UI - mode = las-peliculas-mas-populares")
             lVideos = self.ebiblio.listPopular(mode[0])
@@ -179,7 +203,29 @@ class UI(object):
 
                 xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=urlPlugin, listitem=liz, isFolder=True)
 
-            xbmcplugin.endOfDirectory(self.addon_handle)
+        xbmcplugin.endOfDirectory(self.addon_handle)
+
+    def signIn(self):
+        dialog = xbmcgui.Dialog()
+        username = dialog.input("eFilm library username", type=xbmcgui.INPUT_ALPHANUM)
+        if not username:
+            return
+        password = dialog.input(
+            "eFilm password",
+            type=xbmcgui.INPUT_ALPHANUM,
+            option=xbmcgui.ALPHANUM_HIDE_INPUT,
+        )
+        if not password:
+            return
+        try:
+            self.ebiblio.signIn(username.strip(), password.strip())
+            dialog.notification("eBiblioCat eFilm", "Signed in to eFilm.")
+            return True
+        except EfilmError as error:
+            dialog.notification(
+                "eBiblioCat eFilm", str(error), xbmcgui.NOTIFICATION_ERROR, 7000
+            )
+        return False
 
     def playVideo(self,url):
         code = url[-8:-1]

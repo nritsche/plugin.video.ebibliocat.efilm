@@ -1,8 +1,11 @@
 from __future__ import division
 
 from builtins import object
+import json
 import re
 import xbmc
+import xbmcgui
+import xbmcplugin
 import urllib.parse
 from bs4 import BeautifulSoup
 
@@ -16,6 +19,7 @@ from resources.lib.utils import Urls
 from resources.lib.video.FolderVideo import FolderVideo
 from resources.lib.video.Video import Video
 from resources.lib.ebibliocat.EBiblioStrings import EBiblioStrings
+from resources.lib.ebibliocat.EfilmAPI import EfilmError, EfilmSession
 from resources.lib.utils.Utils import *
 
 
@@ -24,8 +28,231 @@ class EBibliocat(object):
         self.strs = EBiblioStrings(addon)
         self.images = Images(addon_path)
         self.addon_path = addon_path
+        self.addon = addon
+        self.session = EfilmSession(addon)
 
         xbmc.log("plugin.video.ebibliocat.efilm classe EBibliocat - init() ")
+
+    def signIn(self, username, password):
+        self.session.login(username, password)
+
+    def signOut(self):
+        self.session.clear()
+
+    def playProduct(self, product_id, slug, handle):
+        def fail(message):
+            xbmcgui.Dialog().notification("eBiblioCat eFilm", message, xbmcgui.NOTIFICATION_ERROR, 6000)
+            xbmcplugin.setResolvedUrl(handle, False, xbmcgui.ListItem())
+
+        try:
+            if not self.session.has_session():
+                fail("Choose Sign in to eFilm from the add-on menu first.")
+                return
+
+            detail_url = Urls.url_base + "en/audiovisual-detail/{}/{}".format(product_id, slug)
+            detail_html = getHtml(detail_url)
+            if not detail_html:
+                fail("Could not load this title from eFilm.")
+                return
+            detail_soup = BeautifulSoup(detail_html, "html.parser")
+            detail_script = detail_soup.find("script", id="__NEXT_DATA__", type="application/json")
+            page_props = json.loads(detail_script.string)["props"]["pageProps"]
+            product = page_props["productInit"]
+            self.session.set_localization_from_headers(page_props.get("headers"))
+
+            languages = product.get("languages") or []
+            if not languages:
+                fail("eFilm has no playable language tracks for this title.")
+                return
+
+            options = []
+            for track in languages:
+                language = track.get("language") or {}
+                subtitle = track.get("subtitle") or {}
+                language_name = language.get("name_en") or language.get("name") or "Audio"
+                subtitle_name = subtitle.get("name_en") or subtitle.get("name") or "Subtitles"
+                options.append(("{} — {}".format(language_name, subtitle_name), track))
+
+            selection = 0
+            if len(options) > 1:
+                selection = xbmcgui.Dialog().select(
+                    "Choose audio and subtitles", [option[0] for option in options]
+                )
+                if selection < 0:
+                    xbmcplugin.setResolvedUrl(handle, False, xbmcgui.ListItem())
+                    return
+
+            track = options[selection][1]
+            language_id = (track.get("language") or {}).get("id")
+            subtitle_id = (track.get("subtitle") or {}).get("id") or 88
+            if not language_id:
+                fail("eFilm did not provide a language ID for this title.")
+                return
+
+            loan_id = self.session.saved_loan(product_id)
+            if loan_id:
+                confirm = xbmcgui.Dialog().yesno(
+                    "Resume eFilm loan",
+                    "Resume your existing loan for {}?".format(product.get("name", "this title")),
+                    nolabel="Cancel",
+                    yeslabel="Resume",
+                )
+            else:
+                confirm = xbmcgui.Dialog().yesno(
+                    "Borrow from eFilm",
+                    "Borrow {}? This uses one of your available eFilm loans.".format(
+                        product.get("name", "this title")
+                    ),
+                    nolabel="Cancel",
+                    yeslabel="Borrow",
+                )
+            if not confirm:
+                xbmcplugin.setResolvedUrl(handle, False, xbmcgui.ListItem())
+                return
+
+            if not loan_id:
+                loan = self.session.make_loan(product_id)
+                loan_id = loan["id"]
+                self.session.save_loan(product_id, loan_id)
+
+            playback = self.session.get_playback(loan_id, language_id, subtitle_id)
+            item = self._makePlaybackItem(playback, product)
+            if not item:
+                fail("eFilm approved the loan but did not provide a Kodi-compatible stream.")
+                return
+            xbmcplugin.setResolvedUrl(handle, True, item)
+        except EfilmError as error:
+            fail(str(error))
+        except (AttributeError, KeyError, TypeError, ValueError) as error:
+            xbmc.log("eFilm playback response could not be parsed: " + str(error), xbmc.LOGERROR)
+            fail("eFilm returned an unexpected playback response. Check the Kodi log.")
+
+    def _makePlaybackItem(self, playback, product):
+        if isinstance(playback, str):
+            try:
+                playback = json.loads(playback)
+            except ValueError:
+                xbmc.log("eFilm playback response is a string, not JSON", xbmc.LOGERROR)
+                return None
+        if isinstance(playback, list):
+            playback = playback[0] if playback else {}
+        if not isinstance(playback, dict):
+            xbmc.log("eFilm playback response type: " + type(playback).__name__, xbmc.LOGERROR)
+            return None
+        if isinstance(playback.get("data"), dict):
+            playback = playback["data"]
+        player = playback.get("player") or {}
+        if isinstance(player, str):
+            try:
+                player = json.loads(player)
+            except ValueError:
+                player = {"source": player}
+        if not isinstance(player, dict):
+            xbmc.log("eFilm player response type: " + type(player).__name__, xbmc.LOGERROR)
+            return None
+        source = player.get("source") or {}
+        if isinstance(source, str):
+            try:
+                source = json.loads(source)
+            except ValueError:
+                source = {"src": source}
+        if not isinstance(source, dict):
+            xbmc.log("eFilm source response type: " + type(source).__name__, xbmc.LOGERROR)
+            return None
+        streaming = source.get("data_streaming") or {}
+        if isinstance(streaming, list):
+            streaming = streaming[0] if streaming else {}
+        if not isinstance(streaming, dict):
+            streaming = {}
+
+        stream_url = None
+        stream_key = None
+        direct = source.get("src")
+        if isinstance(direct, str) and direct.startswith(("https://", "http://")):
+            stream_url = direct
+            stream_key = "src"
+        for key in ("src", "url", "file", "DASHURL", "HLSURL", "FLVURL"):
+            if stream_url:
+                break
+            value = streaming.get(key) or source.get(key)
+            if isinstance(value, str) and value.startswith(("https://", "http://")):
+                stream_url = value
+                stream_key = key
+                break
+        if not stream_url:
+            xbmc.log(
+                "eFilm playback fields: top={} player={} source={} streaming={}".format(
+                    sorted(playback.keys()), sorted(player.keys()), sorted(source.keys()),
+                    sorted(streaming.keys()) if isinstance(streaming, dict) else type(streaming).__name__
+                ),
+                xbmc.LOGERROR,
+            )
+            return None
+
+        stream_type = str(
+            streaming.get("type")
+            or streaming.get("manifest_type")
+            or source.get("type")
+            or stream_key
+            or ""
+        ).lower()
+        if ".mpd" in stream_url.lower() or "dash" in stream_type:
+            manifest_type = "mpd"
+            mime_type = "application/dash+xml"
+        elif ".m3u8" in stream_url.lower() or any(
+            value in stream_type for value in ("hls", "flvurl", "mpegurl")
+        ):
+            manifest_type = "hls"
+            mime_type = "application/vnd.apple.mpegurl"
+        else:
+            manifest_type = None
+            mime_type = "video/mp4" if ".mp4" in stream_url.lower() else ""
+
+        item = xbmcgui.ListItem(path=stream_url)
+        item.setInfo("video", {"title": product.get("name", "eFilm video")})
+        if mime_type:
+            item.setMimeType(mime_type)
+
+        license_url = (
+            streaming.get("license_url")
+            or streaming.get("licenseUrl")
+            or source.get("license_url")
+            or source.get("licenseUrl")
+        )
+        if manifest_type:
+            item.setProperty("inputstream", "inputstream.adaptive")
+            item.setProperty("inputstream.adaptive.manifest_type", manifest_type)
+            item.setProperty("IsPlayable", "true")
+            item.setContentLookup(False)
+
+            stream_headers = streaming.get("headers") or source.get("headers")
+            if isinstance(stream_headers, dict) and stream_headers:
+                item.setProperty(
+                    "inputstream.adaptive.stream_headers",
+                    urllib.parse.urlencode(stream_headers),
+                )
+
+            if license_url:
+                drm_type = str(
+                    streaming.get("license_type") or streaming.get("drm_type") or streaming.get("type") or ""
+                ).lower()
+                if "playready" in drm_type:
+                    license_type = "com.microsoft.playready"
+                elif "fairplay" in drm_type:
+                    return None
+                else:
+                    license_type = "com.widevine.alpha"
+                item.setProperty("inputstream.adaptive.license_type", license_type)
+                license_headers = streaming.get("license_headers") or source.get("license_headers")
+                if isinstance(license_headers, dict) and license_headers:
+                    license_key = "{}|{}|R{{SSM}}|".format(
+                        license_url, urllib.parse.urlencode(license_headers)
+                    )
+                else:
+                    license_key = license_url
+                item.setProperty("inputstream.adaptive.license_key", license_key)
+
+        return item
 
     # mode = None
     def listHome(self):
@@ -100,77 +327,40 @@ class EBibliocat(object):
 
     # mode = destaquem
     def listPopular(self, section):
-        xbmc.log("plugin.video.ebibliocat.efilm classe EBibliocat - listPopular() ")
-        print("plugin.video.ebibliocat.efilm classe EBibliocat - listPopular() ")
-
-        html_destacats = getHtml(Urls.url_populars[section])
-
         lVideos = []
+        html = getHtml(Urls.url_populars[section])
+        if not html:
+            xbmc.log("eFilm could not load list: " + section, xbmc.LOGERROR)
+            return [lVideos, None]
 
-        if html_destacats:
-            #print(f"/n/n/n/{html_destacats}")
-            soup = BeautifulSoup(html_destacats, "html.parser")
-            #print(soup)
-            dest = None
+        try:
+            soup = BeautifulSoup(html, "html.parser")
+            script = soup.find('script', id="__NEXT_DATA__", type="application/json")
+            entries = json.loads(script.string)["props"]["pageProps"]["productsProp"]["results"]
+        except (AttributeError, KeyError, TypeError, ValueError) as error:
+            xbmc.log("eFilm list parse error for " + section + ": " + str(error), xbmc.LOGERROR)
+            return [lVideos, None]
 
+        for entry in entries:
             try:
-                json_data = soup.find('script', id="__NEXT_DATA__", type="application/json")
+                product = entry["products"]
+                detail_url = (
+                    Urls.url_base + "en/audiovisual-detail/" +
+                    str(product["id"]) + "/" + product["slug"]
+                )
+                detail_html = getHtml(detail_url)
+                if not detail_html:
+                    continue
+                detail_soup = BeautifulSoup(detail_html, "html.parser")
+                detail_script = detail_soup.find('script', id="__NEXT_DATA__", type="application/json")
+                detail = json.loads(detail_script.string)["props"]["pageProps"]["productInit"]
+                video = self.getVideo(detail)
+                if video:
+                    lVideos.append(video)
+            except (AttributeError, KeyError, TypeError, ValueError) as error:
+                xbmc.log("eFilm item parse error: " + str(error), xbmc.LOGWARNING)
 
-                json_data = json.loads(list(json_data.children)[0])["props"]["pageProps"]["productsProp"]["results"]
-                # identifying the required elements and obtaining it by sub string
-                #data = str(json_data)[str(json_data).find('__NEXT_DATA__ = '):str(json_data).find('module={}')]
-                #data = json.loads(data.replace('__NEXT_DATA__ = ', ''))
-                #print("\n\n\n\nFILMS:\n\n")
-                #print(json_data)
-                #print("...")
-                #destacats = soup.findAll("article", {"class": re.compile("cover-content")})
-
-
-                #destacats2 = soup.findAll("div", {"class": re.compile("swiper-slide")})
-
-                #destacats.extend(destacats2)
-
-                for c in json_data:
-                    # a = c.a["href"]
-                    # #code = a[-8:-1]
-                    print(c)
-                    products = c["products"]
-                    print(products)
-                    id = products["id"]
-                    slug = products["slug"]
-                    print(slug)
-                    film_url = Urls.url_base + f"en/audiovisual-detail/{id}/{slug}"
-                    print(film_url)
-
-
-                    html_data = getHtml(film_url)
-                    soup = BeautifulSoup(html_data, "html.parser")
-
-                    print("\n\n\n\n\n\/n/n/n/n/n/n/n/n")
-                    
-                    json_data = soup.find('script', id="__NEXT_DATA__", type="application/json")
-                    json_data = json.loads(list(json_data.children)[0])["props"]["pageProps"]["productInit"]
-                    #print(json.dumps(json_data, indent=4))
-
-                    # data = json.loads(html_data)
-
-                    if len(html_data) > 0:
-                        video = self.getVideo(json_data)
-                        lVideos.append(video)
-
-            except AttributeError as e:
-                xbmc.log("Exception AtributeError Altres items: " + str(e))
-                print("Exception AtributeError Altres items: " + str(e))
-            except KeyError as e:
-                xbmc.log("Exception KeyError Altres items: " + str(e))
-                print("Exception KeyError Altres items: " + str(e))
-
-            except Exception as e:
-                xbmc.log("Exception Item destacat: " + str(e))
-                print("Exception Item destacat: " + str(e))
-
-
-        xbmc.log("listDestaquem len: " + str(len(lVideos)))
+        xbmc.log("eFilm list " + section + " contains " + str(len(lVideos)) + " titles", xbmc.LOGINFO)
 
         result = [None] * 2
         result[0] = lVideos
@@ -700,19 +890,29 @@ class EBibliocat(object):
 
 
     def getVideo(self, data):
-        linkvideo = None
-        urlVideo = data["url_embedded"]
+        product_id = data.get("id")
+        slug = data.get("slug") or ""
+        streaming = data.get("streaming") or {}
+        stream_url = streaming.get("url") or streaming.get("file")
+        is_efilm_product = product_id is not None and "languages" in data
+        if is_efilm_product:
+            urlVideo = "efilm://product/{}/{}".format(product_id, slug)
+        else:
+            urlVideo = data.get("url_embedded") or stream_url or data.get("trailer")
+        if not urlVideo:
+            return None
 
-        titol = data["name"]
-        image = data["cover"]
-        descripcio = data["description"]
+        titol = data.get("name") or data.get("name_en") or data.get("name_es") or "eFilm video"
+        image = data.get("cover") or ""
+        descripcio = data.get("description") or ""
         programa = None
         capitol = None
-        tematica = data.get('genres', [None])[0].get('name', None)
+        genres = data.get('genres') or []
+        tematica = genres[0].get('name') if genres else None
         data_emisio = None
-        minutes = data["duration"]
+        minutes = data.get("duration")
         durada = ""
-        trailerUrl = data["trailer"]
+        trailerUrl = data.get("trailer")
 
         if minutes != None:
             durada = minutes * 60
@@ -757,7 +957,9 @@ class EBibliocat(object):
             infolabels["trailer"] = trailerUrl
 
         video = Video(titol, image, image, infolabels, urlVideo, durada)
-        print(video)
+        if is_efilm_product:
+            video.product_id = product_id
+            video.slug = slug
         return video
 
     #mode = cercar

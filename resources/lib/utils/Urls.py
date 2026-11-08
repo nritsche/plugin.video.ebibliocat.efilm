@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-url_base = 'http://ebibliocat.efilm.info/'
+url_base = 'https://ebibliocat.efilm.info/'
 url_home = "https://ebibliocat.efilm.info/en/lists"
-url_populars = {"popular": 'http://ebibliocat.efilm.info/en/lists/1188/las-peliculas-mas-populares',
-                "noperdis": "http://ebibliocat.efilm.info/en/lists/738/peliculas-en-tendencia-que-no-te-puedes-perder",
+url_populars = {"popular": 'https://ebibliocat.efilm.info/en/lists/1188/las-peliculas-mas-populares',
+                "noperdis": "https://ebibliocat.efilm.info/en/lists/738/peliculas-en-tendencia-que-no-te-puedes-perder",
                 "drama": "http://ebibliocat.efilm.info/en/lists/1365/esto-es-un-drama",
                 "action": "https://ebibliocat.efilm.info/en/lists/1922/accion-sin-respiro",
                 "love": "https://ebibliocat.efilm.info/en/lists/400/corazones-enamorados",
