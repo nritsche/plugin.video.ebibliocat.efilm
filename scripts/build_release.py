@@ -20,7 +20,7 @@ def release_files(root=ROOT):
         "resources/__init__.py",
         "resources/icon.png",
         "resources/fanart.jpg",
-        "resources/artwork/icon.svg",
+        "resources/artwork/fanart.svg",
         "resources/artwork/LICENSE.txt",
     ]
     files = [root / name for name in required]

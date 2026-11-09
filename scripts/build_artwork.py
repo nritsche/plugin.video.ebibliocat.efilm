@@ -1,4 +1,4 @@
-"""Create original, opaque release artwork from basic geometric shapes.
+"""Create the original geometric fanart; preserve the recovered library icon.
 
 Copyright 2026 Rick Nitsche and contributors. GPL-2.0-or-later.
 Requires Pillow (developer tool only); no fonts or third-party artwork are used.
@@ -29,7 +29,6 @@ def artwork(width, height):
 
 
 def main():
-    artwork(512, 512).save(ROOT / "resources/icon.png")
     artwork(1280, 720).save(ROOT / "resources/fanart.jpg", quality=92)
     svg = """<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
 <rect width="512" height="512" fill="#101d31"/>
@@ -40,7 +39,7 @@ def main():
         for y in (152, 208, 264, 320):
             svg += '<rect x="{}" y="{}" width="22" height="32"/>'.format(x, y)
     svg += '</g><path d="M224 192 L224 320 L328 256 Z" fill="#f4f8fc"/></svg>\n'
-    (ROOT / "resources/artwork/icon.svg").write_text(svg, encoding="utf-8")
+    (ROOT / "resources/artwork/fanart.svg").write_text(svg, encoding="utf-8")
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ Version under review: **0.2.1**, prepared 2026-11-09. This file distinguishes co
 
 - [x] Replace the test ID with `plugin.video.ebibliocat.efilm`.
 - [x] Remove inherited TV3 routes/assets, tracked bytecode, and captured webpage; add ignore rules and explicit release allowlists.
-- [x] Retain GPL license/upstream attribution; replace artwork with original reproducible geometry and appropriate dimensions.
+- [x] Retain GPL license/upstream attribution; attribute the recovered library icon and original geometric fanart separately.
 - [x] Add English/Catalan/Spanish messages, metadata, installation/privacy/support/contributor documentation.
 - [x] Add atomic session persistence, thread/process locks, validation, truthful sign-out failures, and password whitespace preservation.
 - [x] Reconcile active loans; validate expiration; require a distinct new borrow confirmation after expiry; never blindly repeat uncertain loan POSTs.

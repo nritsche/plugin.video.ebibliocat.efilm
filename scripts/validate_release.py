@@ -38,8 +38,11 @@ def validate(root=ROOT):
             errors.append("Missing asset: " + child.text)
     png = (root / "resources/icon.png").read_bytes()
     width, height, _, color = struct.unpack(">IIBB", png[16:26])
-    if width != height or width not in (256, 512) or color != 2:
-        errors.append("Icon must be square opaque RGB PNG, 256 or 512 pixels")
+    # Preserve the recovered upstream logo; newly created icons stay square/opaque.
+    original_logo = (width, height, color) == (300, 364, 6)
+    square_icon = width == height and width in (256, 512) and color == 2
+    if not (original_logo or square_icon):
+        errors.append("Icon must be the recovered library logo or a square opaque 256/512 RGB PNG")
     if jpeg_size(root / "resources/fanart.jpg") not in ((1280, 720), (1920, 1080), (3840, 2160)):
         errors.append("Invalid fanart size")
     files = [root / "addon.py"] + list((root / "resources/lib").rglob("*.py"))

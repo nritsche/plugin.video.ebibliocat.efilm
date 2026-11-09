@@ -7,7 +7,7 @@ Updated: 2026-11-09 for version 0.2.1. The original findings against `de7002d` a
 | PUBLIC-01 Repository hygiene | Fixed | Tracked bytecode/web capture removed; `.gitignore`; allowlisted deterministic ZIP builder. |
 | PUBLIC-02 History/privacy scan | Checked | Checksum-pinned Gitleaks 8.30.1 reports no history/source findings; existing author/committer attribution retained. |
 | PUBLIC-03 Identity/metadata | Fixed | Permanent ID, correct source URL, version/changelog, dynamic plugin URLs, and standard sign-in/sign-out. |
-| PUBLIC-04 Provenance/assets | Fixed | GPL/upstream credits retained; inherited branding removed; original source-backed artwork and license. |
+| PUBLIC-04 Provenance/assets | Fixed | GPL/upstream credits retained; recovered library icon attributed separately from GPL geometric fanart. |
 | PUBLIC-05 User documentation | Added | Installation, dependency setup, eligibility, privacy, known limits, development and support instructions. |
 | STABLE-01 Expired loans | Fixed | Service-side reconciliation, expiry checks, separate reborrow confirmation, regression tests. |
 | STABLE-02 Ambiguous/duplicate borrowing | Fixed in client | Per-title lock; existing website loans reused; uncertain POST reconciled once by GET and never blindly repeated. Actual service duplicate-POST behavior is not claimed/tested by consuming credits. |
@@ -29,7 +29,7 @@ Updated: 2026-11-09 for version 0.2.1. The original findings against `de7002d` a
 | QUALITY-05 Python cleanup | Fixed | Removed Python 2 shims/future, unused legacy code/imports, invalid escapes; split storage/HTTP/cache/validation/playback/UI; Ruff lint/format. |
 | QUALITY-06 Kodi metadata | Fixed | Version-aware information tags, movies/TV shows/seasons/episodes content types, year/duration/genres/episode metadata. |
 | QUALITY-07 Contributor/support conventions | Added | CONTRIBUTING.md, SECURITY.md, issue template, architecture/CI/distribution/release documents. |
-| KODI-01 Official submission packaging | Assets/package prepared | Opaque 512×512 icon, 1280×720 JPEG fanart, source/license, no compiled artifacts. Official submission/review remains separate. |
+| KODI-01 Official submission packaging | Assets/package prepared | Recovered original library icon (300×364 with transparency), 1280×720 JPEG fanart, artwork attribution, no compiled artifacts. Official submission/review remains separate. |
 
 Additional requested automation: pinned GitHub Actions for Ruff style/static checking, cross-version/Windows regression tests, branch coverage/XML artifacts, Gitleaks, actionlint, zizmor, CodeQL, dependency review, Dependabot, deterministic artifact builds, and an **opt-in** tagged/manual workflow publishing a Kodi repository feed and prerelease assets. Ordinary source pushes do not publish releases or change repository visibility.
 
