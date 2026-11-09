@@ -233,3 +233,7 @@ msgstr "DRM playback prerequisites are unavailable or setup was cancelled."
 msgctxt "#30060"
 msgid "The old loan is no longer active. Confirm a new loan to continue."
 msgstr "The old loan is no longer active. Confirm a new loan to continue."
+
+msgctxt "#30061"
+msgid "No eFilm loans remaining. Check your eFilm account for the renewal date."
+msgstr "No eFilm loans remaining. Check your eFilm account for the renewal date."

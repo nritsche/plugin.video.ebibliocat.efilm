@@ -71,6 +71,7 @@ MESSAGES = {
     "helper_missing": (30058, "Install InputStream Helper from the Kodi repository, then try again."),
     "drm_missing": (30059, "DRM playback prerequisites are unavailable or setup was cancelled."),
     "loan_expired": (30060, "The old loan is no longer active. Confirm a new loan to continue."),
+    "loan_limit": (30061, "No eFilm loans remaining. Check your eFilm account for the renewal date."),
 }
 
 

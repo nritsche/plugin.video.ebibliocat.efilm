@@ -23,6 +23,13 @@ def request(url, method="GET", payload=None, headers=None, as_json=True):
     except urllib.error.HTTPError as error:
         # Never display an arbitrary backend body: it can contain account details.
         status = error.code
+        loan_limit = False
+        if status == 406:
+            try:
+                rejection = json.loads(error.read(4096).decode("utf-8"))
+                loan_limit = isinstance(rejection, dict) and rejection.get("code") == "0010"
+            except (ValueError, UnicodeError, OSError):
+                pass
         error.close()
         key = {
             401: "session_expired",
@@ -31,6 +38,8 @@ def request(url, method="GET", payload=None, headers=None, as_json=True):
             409: "loan_conflict",
             429: "rate_limited",
         }.get(status, "service_error")
+        if loan_limit:
+            key = "loan_limit"
         raise EfilmError(key, status=status, uncertain=method == "POST" and status >= 500) from None
     except (urllib.error.URLError, socket.timeout, TimeoutError, OSError) as error:
         raise EfilmError("network_error", uncertain=method == "POST") from error
