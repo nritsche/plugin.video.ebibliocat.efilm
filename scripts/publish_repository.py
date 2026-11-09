@@ -75,7 +75,7 @@ def publish(tag, repository, prerelease=True):
             notes = (
                 "Unofficial eBiblioCat eFilm for Kodi. Install the repository ZIP once, "
                 "then install the video add-on from that repository. See README.md for "
-                "eligibility, playback prerequisites, migration, and verification limits."
+                "eligibility, playback prerequisites and verification limits."
             )
             command = [
                 "gh",

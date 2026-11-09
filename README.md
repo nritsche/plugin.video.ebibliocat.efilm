@@ -29,12 +29,6 @@ Selecting a title asks for an available audio/subtitle combination. The add-on c
 
 Availability depends on your account, location, age eligibility, provider, device, and the service's current catalog. The add-on does not override those restrictions.
 
-## Upgrade from the Raspberry Pi test version
-
-The old test add-on ID was `plugin.video.ebibliocat.efilm.pitest`. Install the new ZIP alongside it, then choose **Import test-version sign-in** from the new add-on's home menu if offered. Import happens only after confirmation, copies only the refresh token, and discards old local loan mappings in favor of server reconciliation. It does not erase the old installation.
-
-Refresh tokens can rotate. After checking the new version, uninstall the old test version and its saved data; avoid using both installations with a copied token. You can also sign in afresh instead of importing. Old favorites point to the old add-on ID and must be recreated. Later `0.2.x` updates retain the permanent ID/profile.
-
 ## Privacy and storage
 
 Your password is sent over HTTPS to eFilm during sign-in and is **never saved**. A refresh token and a small loan-ID map are stored in Kodi's add-on profile, `special://profile/addon_data/plugin.video.ebibliocat.efilm/session.json`. Treat that file like a credential. Sign-out removes it and reports filesystem failures rather than pretending to succeed. Session writes are atomic and protected against concurrent add-on invocations; filesystem permissions are restricted where the OS supports them.
