@@ -40,7 +40,7 @@ class SessionTest(unittest.TestCase):
 
     def test_corrupt_and_wrong_shape_session_do_not_crash_home(self):
         for raw in ("[]", "null", '"oops"', "{", '{"refresh": 123}', "{}"):
-            Path(self.session.session_path).write_text(raw)
+            Path(self.session.session_path).write_text(raw, encoding="utf-8")
             self.assertFalse(self.session.has_session())
 
     def test_password_preserved_and_only_refresh_persisted(self):
@@ -49,7 +49,7 @@ class SessionTest(unittest.TestCase):
         )
         self.session.login("user", " password with spaces ")
         self.assertEqual(self.session._request.call_args.args[2]["password"], " password with spaces ")
-        value = json.loads(Path(self.session.session_path).read_text())
+        value = json.loads(Path(self.session.session_path).read_text(encoding="utf-8"))
         self.assertEqual(set(value), {"refresh", "loans"})
         self.assertNotIn("password", json.dumps(value))
         self.assertNotIn("test-access-placeholder", json.dumps(value))
@@ -110,7 +110,7 @@ class SessionTest(unittest.TestCase):
                 process.terminate()
                 self.fail("Profile lock did not complete")
             self.assertEqual(process.exitcode, 0)
-        self.assertEqual(json.loads(Path(self.tmp.name, "counter.json").read_text()), 9)
+        self.assertEqual(json.loads(Path(self.tmp.name, "counter.json").read_text(encoding="utf-8")), 9)
 
     def test_malformed_loan_map_is_sanitized(self):
         write_json(

@@ -60,7 +60,9 @@ class ReleaseTest(unittest.TestCase):
         from resources.lib.ebibliocat.EBiblioStrings import MESSAGES
 
         for locale in ("en_gb", "ca_es", "es_es"):
-            text = (ROOT / ("resources/language/resource.language." + locale + "/strings.po")).read_text()
+            text = (ROOT / ("resources/language/resource.language." + locale + "/strings.po")).read_text(
+                encoding="utf-8"
+            )
             for number, english in MESSAGES.values():
                 self.assertIn('msgctxt "#{}"'.format(number), text)
                 self.assertIn("msgid " + json.dumps(english, ensure_ascii=False), text)

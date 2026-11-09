@@ -53,7 +53,7 @@ class CacheTest(unittest.TestCase):
         self.session._request = Mock(side_effect=self.pages)
         original = self.session.movies()
         path = self.session.cache.directory / "movies-ca.json"
-        cache = json.loads(path.read_text())
+        cache = json.loads(path.read_text(encoding="utf-8"))
         cache["updated"] = 0
         write_json(path, cache)
         self.session._request = Mock(side_effect=EfilmError("network_error"))

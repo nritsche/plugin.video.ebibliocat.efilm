@@ -11,8 +11,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ['3.8', '3.12', '3.14']
+        python: ['3.12', '3.14']
         include:
+          # Python 3.8 binaries are available for Ubuntu 22.04, not ubuntu-latest.
+          - os: ubuntu-22.04
+            python: '3.8'
           - os: windows-latest
             python: '3.12'
     runs-on: ${{ matrix.os }}

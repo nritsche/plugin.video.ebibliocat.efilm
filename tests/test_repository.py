@@ -16,7 +16,9 @@ class RepositoryTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             site = build_repository(temporary)
             data = (site / "addons.xml").read_bytes()
-            self.assertEqual(hashlib.md5(data).hexdigest(), (site / "addons.xml.md5").read_text())
+            self.assertEqual(
+                hashlib.md5(data).hexdigest(), (site / "addons.xml.md5").read_text(encoding="utf-8")
+            )
             feed = ET.fromstring(data)
             self.assertEqual(
                 {node.attrib["id"] for node in feed}, {"plugin.video.ebibliocat.efilm", REPOSITORY_ID}
