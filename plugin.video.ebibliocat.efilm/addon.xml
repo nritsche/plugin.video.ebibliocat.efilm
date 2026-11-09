@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.ebibliocat.efilm" name="eBiblioCat eFilm" version="0.2.1" provider-name="Rick Nitsche">
+<addon id="plugin.video.ebibliocat.efilm" name="eBiblioCat eFilm" version="0.2.2" provider-name="Rick Nitsche">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.beautifulsoup4" version="4.6.3"/>
