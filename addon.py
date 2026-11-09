@@ -1,36 +1,21 @@
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
+"""Kodi plugin entry point. Never log plugin arguments or resolved URLs."""
+
 import sys
-import urllib.parse
-import xbmcplugin
-import xbmc
+from urllib.parse import parse_qs
+
 from resources.lib.ui.UI import UI
 
 
-xbmc.log("plugin.video.ebibliocat.efilm - addon.py")
-base_url = sys.argv[0]
-addon_handle = int(sys.argv[1])
-print(sys.argv[2][1:])
-
-xbmc.log(str(sys.argv[2][1:]))
-args = urllib.parse.parse_qs(sys.argv[2][1:])
-print(args)
-
-xbmc.log("plugin.video.ebibliocat.efilm - addon.py - args: ")
-xbmc.log(str(args))
-
-xbmcplugin.setContent(addon_handle, 'movies')
-
-mode = args.get('mode', None)
-url = args.get('url', [''])
+def main(argv=None):
+    argv = sys.argv if argv is None else argv
+    if len(argv) < 3:
+        raise ValueError("Run this add-on through Kodi")
+    try:
+        arguments = parse_qs(argv[2].lstrip("?"), keep_blank_values=True, max_num_fields=20)
+    except ValueError:
+        arguments = {"mode": ["invalid"]}
+    UI(argv[0], int(argv[1]), arguments).run()
 
 
-
-ui = UI(base_url, addon_handle, args)
-
-print(mode)
-print(url)
-ui.run(mode, url)
-  
+if __name__ == "__main__":
+    main()

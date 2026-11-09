@@ -1,0 +1,7 @@
+The geometric film/play icon and fanart were created for this project in 2026.
+Copyright (C) 2026 Rick Nitsche and contributors.
+SPDX-License-Identifier: GPL-2.0-or-later
+
+Source: icon.svg and scripts/build_artwork.py in this repository.
+No service logos, stock artwork, or external fonts are used.
+See the repository's LICENSE.txt for the full license.

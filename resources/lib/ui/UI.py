@@ -1,317 +1,278 @@
-from builtins import str
-from builtins import object
-from resources.lib.utils.Utils import buildUrl
-from resources.lib.ebibliocat.EBibliocat import EBibliocat
-from resources.lib.ebibliocat.EfilmAPI import EfilmError
-from resources.lib.video.FolderVideo import FolderVideo
-import xbmcaddon
-import xbmcplugin
-import xbmcgui
+"""Validated plugin routing, localized dialogs, and Kodi item rendering."""
+
+import re
+from pathlib import Path
+from urllib.parse import unquote
+
 import xbmc
+import xbmcaddon
+import xbmcgui
+import xbmcplugin
 import xbmcvfs
-import urllib.parse
+
+from resources.lib.ebibliocat import Playback
+from resources.lib.ebibliocat.EBibliocat import EBibliocat
+from resources.lib.ebibliocat.Errors import Cancelled, EfilmError
+from resources.lib.ebibliocat.Validation import positive_id
+from resources.lib.utils.Utils import buildUrl
+from resources.lib.video.FolderVideo import FolderVideo
 
 
-class UI(object):
-
+class UI:
     def __init__(self, base_url, addon_handle, args):
         addon = xbmcaddon.Addon()
-        addon_path = xbmcvfs.translatePath(addon.getAddonInfo('path'))
-        self.ebiblio = EBibliocat(addon_path, addon)
-        self.base_url = base_url
-        self.addon_handle = addon_handle
-        self.args = args
-        self.mode = args.get('mode', None)
-        self.url = args.get('url', [''])
-        self.name = args.get('name', None)
-        xbmc.log("plugin.video.ebibliocat.efilm classe UI - init() ")
+        self.ebiblio = EBibliocat(xbmcvfs.translatePath(addon.getAddonInfo("path")), addon)
+        self.base_url, self.addon_handle, self.args = base_url, addon_handle, args
+        self.strs = self.ebiblio.strs
+        self._finished = False
+        self._playback = False
+        self.filters = {}
 
+    def _arg(self, key, default=""):
+        value = self.args.get(key, [default])
+        if not isinstance(value, list) or len(value) != 1 or not isinstance(value[0], str):
+            raise EfilmError("unknown_route")
+        return value[0]
 
-    def run(self, mode, url):
-        xbmc.log("plugin.video.ebibliocat.efilm classe UI - run()  mode = " + str(mode))
+    def _page(self):
+        page = positive_id(self._arg("url", "1") or "1")
+        if page > 10000:
+            raise EfilmError("unknown_route")
+        return page
 
+    def _notice(self, key, error=False):
+        xbmcgui.Dialog().notification(
+            "eBiblioCat eFilm",
+            self.strs.get(key),
+            xbmcgui.NOTIFICATION_ERROR if error else xbmcgui.NOTIFICATION_INFO,
+            6000,
+        )
 
-        if mode == None:
-            xbmc.log("plugin.ebibliocat.tv3.efilm classe UI - mode = None")
-            lFolder = self.ebiblio.listHome()
-            account_label = "Sign out of eFilm" if self.ebiblio.session.has_session() else "Sign in to eFilm"
-            account_mode = "logout" if self.ebiblio.session.has_session() else "login"
-            lFolder.append(FolderVideo(account_label, "", account_mode, "", ""))
-            xbmc.log(f"lfolder: {lFolder}")
-            if len(lFolder) > 0:
-                self.listFolder(lFolder)
-            else:
-                xbmc.log("UI.run() Home - No existeixen elements")
-
-        elif mode[0] == 'login':
-            xbmcplugin.endOfDirectory(self.addon_handle)
-            if self.signIn():
-                xbmc.executebuiltin(
-                    "Container.Update(plugin://plugin.video.ebibliocat.efilm.pitest/)"
-                )
-
-        elif mode[0] == 'logout':
-            self.ebiblio.signOut()
-            xbmcgui.Dialog().notification("eBiblioCat eFilm", "Signed out of eFilm.")
-            xbmcplugin.endOfDirectory(self.addon_handle)
-            xbmc.executebuiltin("Container.Refresh")
-
-        elif mode[0] in ('lists', 'genres', 'series') or mode[0].startswith('series:'):
-            try:
-                if mode[0] == 'lists':
-                    folders = self.ebiblio.listLists()
-                elif mode[0] == 'genres':
-                    folders = self.ebiblio.listGenres()
-                elif mode[0] == 'series':
-                    folders = self.ebiblio.listSeries(int(url[0] or 1))
+    def run(self, mode=None, url=None):
+        # Arguments are read from self.args so validation cannot be bypassed by another caller.
+        try:
+            route = self._arg("mode")
+            actions = {
+                "": self._home,
+                "login": self._login,
+                "logout": self._logout,
+                "import_session": self._import_session,
+                "all_movies": self._movies,
+                "movies": self._movies,
+                "alphabet": self._alphabet,
+                "search": self._search,
+                "genres": lambda: self.listFolder(self.ebiblio.listGenres()),
+                "lists": lambda: self.listFolder(self.ebiblio.listLists()),
+                "series": lambda: self.listFolder(self.ebiblio.listSeries(self._page()), "tvshows"),
+                "refresh": lambda: self._movies(refresh=True),
+                "clear_cache": self._clear_cache,
+                "playVideo": self._play,
+            }
+            if route in actions:
+                actions[route]()
+            elif re.fullmatch(r"(collection|genre|series|season):[1-9][0-9]*", route):
+                kind, identifier = route.split(":", 1)
+                identifier = positive_id(identifier)
+                if kind == "collection":
+                    self.listVideos(self.ebiblio.listCollection(identifier, self._page()))
+                elif kind == "genre":
+                    self._movies(genre_id=identifier)
+                elif kind == "series":
+                    self.listFolder(self.ebiblio.listSeasons(identifier), "seasons")
                 else:
-                    folders = self.ebiblio.listSeasons(mode[0].split(':', 1)[1])
-                self.listFolder(folders)
-            except (EfilmError, KeyError, TypeError, ValueError) as error:
-                xbmc.log("eFilm directory error: " + str(error), xbmc.LOGERROR)
-                xbmcgui.Dialog().notification("eBiblioCat eFilm", "Could not load this directory.")
-                self.listFolder([])
-
-        elif mode[0] == 'movies' or mode[0].startswith(('genre:', 'season:')):
-            try:
-                if mode[0].startswith('season:'):
-                    result = self.ebiblio.listEpisodes(mode[0].split(':', 1)[1], url[0])
-                else:
-                    genre = mode[0].split(':', 1)[1] if ':' in mode[0] else None
-                    result = self.ebiblio.listMovies(int(url[0] or 1), genre)
-                self.listVideos(result)
-            except (EfilmError, KeyError, TypeError, ValueError, OSError) as error:
-                xbmc.log("eFilm catalog error: " + str(error), xbmc.LOGERROR)
-                xbmcgui.Dialog().notification("eBiblioCat eFilm", "Could not load this catalog.")
-                self.listVideos([[], None])
-
-        elif mode[0].startswith('collection:'):
-            self.listVideos(self.ebiblio.listCollection(
-                mode[0].split(':', 1)[1], int(url[0] or 1)
-            ))
-
-        elif mode[0] == 'sections':
-
-            lFolder = self.tv3.programsSections(url[0])
-
-            if len(lFolder) > 0:
-                self.listFolder(lFolder)
+                    self.listVideos(self.ebiblio.listEpisodes(identifier, self._page()), "episodes")
             else:
-                xbmc.log("UI.run() sections - No existeixen elements")
-
-        elif mode[0] == 'dirAZemisio':
-
-            lFolder = self.tv3.dirAZemisio()
-
-            if len(lFolder) > 0:
-                self.listFolder(lFolder)
-            else:
-                xbmc.log("UI.run() dirAZemisio - No existeixen elements")
-
-        elif mode[0] == 'dirAZtots':
-
-            lFolder = self.tv3.dirAZtots()
-
-            if len(lFolder) > 0:
-                self.listFolder(lFolder)
-            else:
-                xbmc.log("UI.run() dirAZtots - No existeixen elements")
-
-        elif mode[0] == 'progAZ':
-            letters = self.name[0]
-            lFolder = self.tv3.programesAZ(url[0], letters)
-
-            if len(lFolder) > 0:
-                self.listFolder(lFolder)
-            else:
-                xbmc.log("UI.run() progAZ - No existeixen elements")
-
-        elif mode[0] == 'directe':
-
-            lVideos = self.tv3.listDirecte()
-            self.listVideos(lVideos)
-
-        elif mode[0] == 'cercar':
-
-            lVideos = self.tv3.search()
-
-            if len(lVideos) > 0:
-                self.listVideos(lVideos)
-            else:
-                xbmc.log("UI.run() cercar - No s'ha trobat cap video")
-
-
-        elif mode[0] == 'getlistvideos':
-
-            lVideos = self.tv3.getListVideos(url[0], None)
-            self.listVideos(lVideos)
-
-        elif mode[0] == 'coleccions':
-
-            lFolder = self.tv3.listColeccions()
-            self.listFolder(lFolder)
-
-        elif mode[0] == 'playVideo':
-            if url[0].startswith('efilm://episode/'):
-                parts = url[0].split('/')
-                if len(parts) == 7:
-                    self.ebiblio.playProduct(
-                        parts[5], parts[6], self.addon_handle,
-                        series_id=parts[3], series_slug=parts[4],
-                    )
-                else:
+                raise EfilmError("unknown_route")
+            if self.ebiblio.session.cache.used_stale:
+                self._notice("stale_cache")
+        except Cancelled:
+            pass
+        except EfilmError as error:
+            xbmc.log("eFilm operation failed: " + error.message, xbmc.LOGWARNING)
+            self._notice(error.message, error=True)
+        except (ValueError, TypeError, KeyError, AttributeError, OSError):
+            # No arbitrary exception text, arguments, or signed URLs enter diagnostics.
+            xbmc.log("eFilm operation failed: invalid data or local I/O", xbmc.LOGERROR)
+            self._notice("invalid_response", error=True)
+        finally:
+            if not self._finished:
+                if self._playback:
                     xbmcplugin.setResolvedUrl(self.addon_handle, False, xbmcgui.ListItem())
-            elif url[0].startswith('efilm://product/'):
-                parts = url[0].split('/')
-                if len(parts) >= 5:
-                    self.ebiblio.playProduct(parts[-2], parts[-1], self.addon_handle)
                 else:
-                    xbmcplugin.setResolvedUrl(self.addon_handle, False, xbmcgui.ListItem())
-            else:
-                self.playVideo(url[0])
+                    xbmcplugin.endOfDirectory(self.addon_handle, succeeded=False)
+                self._finished = True
+
+    def _legacy_path(self):
+        return Path(
+            xbmcvfs.translatePath(
+                "special://profile/addon_data/plugin.video.ebibliocat.efilm.pitest/session.json"
+            )
+        )
+
+    def _home(self):
+        folders = self.ebiblio.listHome()
+        signed_in = self.ebiblio.session.has_session()
+        key = "logout" if signed_in else "login"
+        folders.append(FolderVideo(self.strs.get(key), "", key))
+        if not signed_in and self._legacy_path().is_file():
+            folders.append(FolderVideo(self.strs.get("import_session"), "", "import_session"))
+        self.listFolder(folders)
+
+    def _login(self):
+        if self.signIn():
+            self._finish()
+            xbmc.executebuiltin("Container.Update({})".format(self.base_url))
         else:
-            xbmc.log("plugin.video.ebibliocat.efilm classe UI - mode = las-peliculas-mas-populares")
-            lVideos = self.ebiblio.listPopular(mode[0])
+            self._finish()
 
-            if len(lVideos) > 0:
-                self.listVideos(lVideos)
-            else:
-                xbmc.log("UI.run() popular - No existeixen videos")
+    def _logout(self):
+        self.ebiblio.signOut()
+        self._notice("signed_out")
+        self._finish()
+        xbmc.executebuiltin("Container.Refresh")
 
-    def listFolder(self, lFolderVideos):
-        xbmc.log(f"plugin.video.ebibliocat.efilm classe UI - listFolder: {lFolderVideos}")
-        for folder in lFolderVideos:
+    def _import_session(self):
+        if xbmcgui.Dialog().yesno("eBiblioCat eFilm", self.strs.get("import_confirm")):
+            self.ebiblio.session.import_session(self._legacy_path())
+            self._notice("imported")
+        self._finish()
+        xbmc.executebuiltin("Container.Update({})".format(self.base_url))
 
-            mode = folder.mode
-            name = folder.name
-            nameQuoted = urllib.parse.quote(name)
-            url = folder.url
-            iconImage = folder.iconImage
-            thumbImage = folder.thumbnailImage
+    def _clear_cache(self):
+        self.ebiblio.session.cache.clear()
+        self._notice("cache_cleared")
+        self._home()
 
-            urlPlugin = buildUrl({'mode': mode, 'name': nameQuoted, 'url': url}, self.base_url)
-            xbmc.log(urlPlugin)
-            liz = xbmcgui.ListItem(name)
-            liz.setInfo(type="Video", infoLabels={"title": name})
-            liz.setArt({'thumb': thumbImage, 'icon' : iconImage})
+    def _alphabet(self):
+        folders = [FolderVideo(letter, "1", "all_movies") for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
+        folders.append(FolderVideo(self.strs.get("other_letters"), "1", "all_movies"))
+        for folder in folders:
+            self._add_folder(folder, {"letter": folder.name if len(folder.name) == 1 else "#"})
+        self._finish("files")
 
-            xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=urlPlugin, listitem=liz, isFolder=True)
-        xbmcplugin.endOfDirectory(self.addon_handle)
+    def _search(self):
+        term = xbmcgui.Dialog().input(self.strs.get("search"), type=xbmcgui.INPUT_ALPHANUM)
+        if not term:
+            raise Cancelled()
+        self._movies(term=term)
 
-    def listVideos(self, lVideos):
+    def _movies(self, genre_id=None, term=None, refresh=False):
+        term = self._arg("term") if term is None else term
+        letter = self._arg("letter")
+        if len(term) > 200 or (letter and letter not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ#"):
+            raise EfilmError("unknown_route")
+        self.filters = {k: v for k, v in {"term": term, "letter": letter}.items() if v}
+        dialog = xbmcgui.DialogProgress()
+        dialog.create("eBiblioCat eFilm", self.strs.get("loading"))
+        monitor = xbmc.Monitor()
 
-        xbmc.log("--------List videos ----------")
-        last = lVideos[1]
-        listVideos = lVideos[0]
-        if not listVideos:
-            xbmc.log("UI - listVideos - Numero videos: 0")
+        def progress(current, total):
+            dialog.update(
+                int(current * 100 / total), self.strs.get("loading_pages", current=current, total=total)
+            )
+
+        try:
+            result = self.ebiblio.listMovies(
+                self._page() if not refresh else 1,
+                genre_id,
+                term,
+                letter,
+                refresh,
+                progress,
+                lambda: monitor.abortRequested() or dialog.iscanceled(),
+            )
+        finally:
+            dialog.close()
+        xbmcplugin.setPluginCategory(self.addon_handle, self.ebiblio.page_summary)
+        if not result[0]:
+            self._notice("no_results")
+        self.listVideos(result)
+        if refresh:
+            self._notice("catalog_refreshed")
+
+    def _play(self):
+        self._playback = True
+        parts = self._arg("url").split("/")
+        if len(parts) == 5 and parts[:3] == ["efilm:", "", "product"]:
+            identifier, slug = positive_id(parts[3]), unquote(parts[4])
+            if not slug or len(slug) > 300:
+                raise EfilmError("unknown_route")
+            self.ebiblio.playProduct(identifier, slug, self.addon_handle)
+        elif len(parts) == 7 and parts[:3] == ["efilm:", "", "episode"]:
+            series, identifier = positive_id(parts[3]), positive_id(parts[5])
+            series_slug, slug = unquote(parts[4]), unquote(parts[6])
+            if not series_slug or not slug or max(len(series_slug), len(slug)) > 300:
+                raise EfilmError("unknown_route")
+            self.ebiblio.playProduct(identifier, slug, self.addon_handle, series, series_slug)
         else:
-            xbmc.log("UI - listVideos - Numero videos: " + str(len(listVideos)))
+            raise EfilmError("unknown_route")
+        self._finished = True  # playProduct resolves both success and failure paths.
 
+    def _set_info(self, item, info):
+        if Playback.kodi_major() < 20:
+            item.setInfo("video", info)
+            return
+        tag = item.getVideoInfoTag()
+        setters = {
+            "title": tag.setTitle,
+            "plot": tag.setPlot,
+            "year": tag.setYear,
+            "duration": tag.setDuration,
+            "genre": tag.setGenres,
+            "season": tag.setSeason,
+            "episode": tag.setEpisode,
+            "trailer": tag.setTrailer,
+        }
+        for key, value in info.items():
+            if key in setters:
+                setters[key](value)
 
+    def _add_folder(self, folder, extra=None):
+        query = {"mode": folder.mode, "url": folder.url}
+        if folder.mode in ("all_movies", "movies") or folder.mode.startswith("genre:"):
+            query.update(self.filters)
+        query.update(extra or {})
+        item = xbmcgui.ListItem(folder.name)
+        self._set_info(item, {"title": folder.name})
+        item.setArt({"thumb": folder.thumbnailImage, "icon": folder.iconImage})
+        xbmcplugin.addDirectoryItem(self.addon_handle, buildUrl(query, self.base_url), item, isFolder=True)
 
-            for video in listVideos:
-                if isinstance(video, FolderVideo):
-                    folder_url = buildUrl({
-                        'mode': video.mode, 'name': '', 'url': video.url,
-                    }, self.base_url)
-                    item = xbmcgui.ListItem(video.name)
-                    item.setArt({'thumb': video.thumbnailImage, 'icon': video.iconImage})
-                    xbmcplugin.addDirectoryItem(
-                        handle=self.addon_handle, url=folder_url, listitem=item, isFolder=True,
-                    )
-                elif video:
-                    urlVideo = video.url
-                    xbmc.log("UI - listVideos - urlVideo: " + urlVideo)
-                    iconImage = video.iconImage
-                    thumbImage = video.thumbnailImage
-                    durada = video.durada
-                    titol = video.title
+    def _finish(self, content="files"):
+        xbmcplugin.setContent(self.addon_handle, content)
+        xbmcplugin.endOfDirectory(self.addon_handle, cacheToDisc=False)
+        self._finished = True
 
-                    urlPlugin = buildUrl({'mode':'playVideo','name':"",'url':urlVideo}, self.base_url)
+    def listFolder(self, folders, content="files"):
+        for folder in folders:
+            self._add_folder(folder)
+        self._finish(content)
 
-                    liz = xbmcgui.ListItem(titol)
-
-                    infolabels = video.information
-
-                    liz.setInfo('video', infolabels)
-                    liz.setArt({'thumb': thumbImage, 'icon': "DefaultVideo.png"})
-                    liz.addStreamInfo('video', {'duration': durada})
-                    liz.setProperty('isPlayable', 'true')
-                    xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=urlPlugin, listitem=liz)
-
-            if last:
-                mode = last.mode
-                name = last.name
-                url = last.url
-                #xbmc.log("UI - listVideos - urlNext: " + url)
-                iconImage = last.iconImage
-                thumbImage = last.thumbnailImage
-
-                urlPlugin = buildUrl({'mode': mode, 'name': '', 'url': url}, self.base_url)
-                liz = xbmcgui.ListItem(name)
-                liz.setInfo(type="Video", infoLabels={"title": name})
-                liz.setArt({'thumb': thumbImage, 'icon': iconImage})
-
-                xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=urlPlugin, listitem=liz, isFolder=True)
-
-        xbmcplugin.endOfDirectory(self.addon_handle)
+    def listVideos(self, result, content="movies"):
+        videos, following = result
+        for video in videos:
+            if isinstance(video, FolderVideo):
+                self._add_folder(video)
+            elif video:
+                item = xbmcgui.ListItem(video.title)
+                self._set_info(item, video.information)
+                item.setArt({"thumb": video.thumbnailImage, "icon": "DefaultVideo.png"})
+                item.setProperty("IsPlayable", "true")
+                url = buildUrl({"mode": "playVideo", "url": video.url}, self.base_url)
+                xbmcplugin.addDirectoryItem(self.addon_handle, url, item, isFolder=False)
+        if following:
+            self._add_folder(following)
+        self._finish(content)
 
     def signIn(self):
         dialog = xbmcgui.Dialog()
-        username = dialog.input("eFilm library username", type=xbmcgui.INPUT_ALPHANUM)
+        username = dialog.input(self.strs.get("username"), type=xbmcgui.INPUT_ALPHANUM)
         if not username:
-            return
+            return False
         password = dialog.input(
-            "eFilm password",
-            type=xbmcgui.INPUT_ALPHANUM,
-            option=xbmcgui.ALPHANUM_HIDE_INPUT,
+            self.strs.get("password"), type=xbmcgui.INPUT_ALPHANUM, option=xbmcgui.ALPHANUM_HIDE_INPUT
         )
         if not password:
-            return
-        try:
-            self.ebiblio.signIn(username.strip(), password.strip())
-            dialog.notification("eBiblioCat eFilm", "Signed in to eFilm.")
-            return True
-        except EfilmError as error:
-            dialog.notification(
-                "eBiblioCat eFilm", str(error), xbmcgui.NOTIFICATION_ERROR, 7000
-            )
-        return False
-
-    def playVideo(self,url):
-        code = url[-8:-1]
-        xbmc.log("UI - playVideo")
-
-
-        # html_data = getHtml(url_datavideos + code + '&profile=pc')
-        #
-        # if html_data:
-        #
-        #     html_data = html_data.decode("ISO-8859-1")
-        #     data = json.loads(html_data)
-        #
-        #     urlvideo = None
-        #
-        #     if len(data) > 0:
-        #
-        #         media = data.get('media', {})
-        #
-        #         if type(media) is list and len(media) > 0:
-        #             media_dict = media[0]
-        #             urlvideo = media_dict.get('url', None)
-        #         else:
-        #             urlvideo = media.get('url', None)
-        #
-        #         if urlvideo:
-        #             if type(urlvideo) is list and len(urlvideo) > 0:
-        #                 urlvideo_item = urlvideo[0]
-        #                 video = urlvideo_item.get('file', None)
-        #
-        #             else:
-        #                 video = url
-        #
-        #             xbmc.log("Play video - url:  " + video)
-
-        item = xbmcgui.ListItem(path=url)
-        xbmcplugin.setResolvedUrl(self.addon_handle, True, item)
+            return False
+        self.ebiblio.signIn(username.strip(), password)
+        self._notice("signed_in")
+        return True

@@ -1,2 +1,13 @@
-﻿v0.0.1
-- initial version
+v0.2.0
+- Adopt the permanent plugin.video.ebibliocat.efilm ID and offer test-profile session import.
+- Add safe loan reconciliation, session persistence, and playback prerequisite checks.
+- Add search, A-Z navigation, progress/cancellation, refresh, and resilient caching.
+- Remove inherited TV3 routes and artwork; localize the current interface.
+- Add supported-version playback configuration, regression tests, CI, and reproducible release ZIPs.
+
+v0.1.0
+- Add eFilm authentication, loan confirmation, and movie playback.
+- Add dynamic lists, movie catalog, genre filters, and series/season/episode browsing.
+
+v0.0.1
+- Initial experimental eFilm adaptation of the TV3cat add-on.

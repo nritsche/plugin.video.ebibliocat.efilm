@@ -1,12 +1,12 @@
-from builtins import object
-class Video(object):
+from dataclasses import dataclass
+from typing import Any, Dict
 
-    def __init__(self, title, iconImage, thumbnailImage, information, url, durada):
 
-        self.title = title
-        self.iconImage = iconImage
-        self.thumbnailImage = thumbnailImage
-        self.information = information
-        self.url = url
-        self.durada = durada
-
+@dataclass
+class Video:
+    title: str
+    iconImage: str
+    thumbnailImage: str
+    information: Dict[str, Any]
+    url: str
+    durada: int = 0
