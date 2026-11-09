@@ -46,18 +46,6 @@ msgctxt "#30010"
 msgid "Sign out of eFilm"
 msgstr "Sign out of eFilm"
 
-msgctxt "#30011"
-msgid "Import test-version sign-in"
-msgstr "Import test-version sign-in"
-
-msgctxt "#30012"
-msgid "Import your existing test-version sign-in? The old installation remains separate."
-msgstr "Import your existing test-version sign-in? The old installation remains separate."
-
-msgctxt "#30013"
-msgid "Sign-in imported. Uninstall the test version after checking the new version."
-msgstr "Sign-in imported. Uninstall the test version after checking the new version."
-
 msgctxt "#30014"
 msgid "eFilm library username"
 msgstr "eFilm library username"

@@ -1,14 +1,14 @@
 # Release audit resolution
 
-Updated: 2026-11-09 for version 0.2.0. The original findings against `de7002d` are retained in [docs/AUDIT_BASELINE.md](docs/AUDIT_BASELINE.md). This resolution records code/documentation work and its verification; it does not certify untested devices or a public release.
+Updated: 2026-11-09 for version 0.2.1. The original findings against `de7002d` are retained in [docs/AUDIT_BASELINE.md](docs/AUDIT_BASELINE.md). This resolution records code/documentation work and its verification; it does not certify untested devices or a public release.
 
 | Issue | Resolution | Evidence |
 | --- | --- | --- |
 | PUBLIC-01 Repository hygiene | Fixed | Tracked bytecode/web capture removed; `.gitignore`; allowlisted deterministic ZIP builder. |
 | PUBLIC-02 History/privacy scan | Checked | Checksum-pinned Gitleaks 8.30.1 reports no history/source findings; existing author/committer attribution retained. |
-| PUBLIC-03 Identity/metadata | Fixed | Permanent ID, correct source URL, version/changelog, dynamic plugin URLs, opt-in test-profile session import. |
+| PUBLIC-03 Identity/metadata | Fixed | Permanent ID, correct source URL, version/changelog, dynamic plugin URLs, and standard sign-in/sign-out. |
 | PUBLIC-04 Provenance/assets | Fixed | GPL/upstream credits retained; inherited branding removed; original source-backed artwork and license. |
-| PUBLIC-05 User documentation | Added | Installation, dependency setup, eligibility, migration, privacy, known limits, development and support instructions. |
+| PUBLIC-05 User documentation | Added | Installation, dependency setup, eligibility, privacy, known limits, development and support instructions. |
 | STABLE-01 Expired loans | Fixed | Service-side reconciliation, expiry checks, separate reborrow confirmation, regression tests. |
 | STABLE-02 Ambiguous/duplicate borrowing | Fixed in client | Per-title lock; existing website loans reused; uncertain POST reconciled once by GET and never blindly repeated. Actual service duplicate-POST behavior is not claimed/tested by consuming credits. |
 | STABLE-03 Session persistence | Fixed | Validated atomic JSON, restrictive permissions, thread/process locks, token rotation, truthful deletion errors; concurrency/failure tests. |

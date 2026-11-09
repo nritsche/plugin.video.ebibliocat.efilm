@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlsplit
 
@@ -62,6 +63,32 @@ class UITest(unittest.TestCase):
         self.assertTrue(any("search" in url for url in urls))
         self.assertTrue(any("login" in url for url in urls))
         xbmcplugin.endOfDirectory.assert_called_once()
+
+    def test_home_never_exposes_legacy_import_even_when_old_data_exists(self):
+        legacy = Path(self.tmp.name, "addon_data", "plugin.video.ebibliocat.efilm.pitest", "session.json")
+        legacy.parent.mkdir(parents=True)
+        legacy.write_text('{"refresh": "synthetic-old-session"}', encoding="utf-8")
+
+        def translate(path):
+            return path.replace("special://profile/", self.tmp.name + "/")
+
+        with patch("resources.lib.ui.UI.xbmcvfs.translatePath", side_effect=translate):
+            ui = self.ui()
+            ui.run()
+        modes = [
+            parse_qs(urlsplit(call.args[1]).query)["mode"][0]
+            for call in xbmcplugin.addDirectoryItem.call_args_list
+        ]
+        self.assertIn("login", modes)
+        self.assertNotIn("import_session", modes)
+        self.assertEqual(len(modes), 9)
+        self.assertFalse(hasattr(ui.ebiblio.session, "import_session"))
+        self.assertTrue(legacy.is_file())
+
+    def test_removed_import_route_is_rejected(self):
+        self.ui(mode="import_session").run()
+        xbmcplugin.addDirectoryItem.assert_not_called()
+        self.assertFalse(xbmcplugin.endOfDirectory.call_args.kwargs["succeeded"])
 
     def test_empty_filtered_page_keeps_next_page(self):
         ui = self.ui(mode="collection:1", url=1)

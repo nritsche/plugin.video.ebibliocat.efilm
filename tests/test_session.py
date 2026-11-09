@@ -178,15 +178,6 @@ class SessionTest(unittest.TestCase):
         with self.assertRaises(EfilmError):
             self.session._authorized_request("GET", "private/")
 
-    def test_migration_imports_only_refresh_and_does_not_overwrite_current(self):
-        legacy = Path(self.tmp.name, "legacy.json")
-        write_json(legacy, {"refresh": "legacy-placeholder", "access": "ignore", "loans": {"1": 2}})
-        self.assertTrue(self.session.import_session(legacy))
-        self.assertEqual(self.session._load_session(), {"refresh": "legacy-placeholder", "loans": {}})
-        write_json(legacy, {"refresh": "different"})
-        self.assertFalse(self.session.import_session(legacy))
-        self.assertEqual(self.session._load_refresh_token(), "legacy-placeholder")
-
     def test_saved_loan_is_reconciled_against_server(self):
         self.signed_in()
         self.session.save_loan(1, 98)

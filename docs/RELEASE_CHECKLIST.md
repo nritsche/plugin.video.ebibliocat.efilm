@@ -1,13 +1,13 @@
 # Release procedure and verification record
 
-Version under review: **0.2.0**, prepared 2026-11-09. This file distinguishes completed engineering checks from manual release acceptance. Do not turn a pending check into a claim of supported device/provider playback.
+Version under review: **0.2.1**, prepared 2026-11-09. This file distinguishes completed engineering checks from manual release acceptance. Do not turn a pending check into a claim of supported device/provider playback.
 
 ## Completed locally
 
-- [x] Replace the test ID with `plugin.video.ebibliocat.efilm`; add confirmed import of the old test profile's refresh token.
+- [x] Replace the test ID with `plugin.video.ebibliocat.efilm`.
 - [x] Remove inherited TV3 routes/assets, tracked bytecode, and captured webpage; add ignore rules and explicit release allowlists.
 - [x] Retain GPL license/upstream attribution; replace artwork with original reproducible geometry and appropriate dimensions.
-- [x] Add English/Catalan/Spanish messages, metadata, installation/migration/privacy/support/contributor documentation.
+- [x] Add English/Catalan/Spanish messages, metadata, installation/privacy/support/contributor documentation.
 - [x] Add atomic session persistence, thread/process locks, validation, truthful sign-out failures, and password whitespace preservation.
 - [x] Reconcile active loans; validate expiration; require a distinct new borrow confirmation after expiry; never blindly repeat uncertain loan POSTs.
 - [x] Bound HTTP requests, sanitize errors/logging, validate routes/responses/cache data, and retain next-page navigation on empty pages.
@@ -22,13 +22,13 @@ Version under review: **0.2.0**, prepared 2026-11-09. This file distinguishes co
 - [x] Add coverage reporting with an 80% branch-coverage gate, CodeQL, dependency review, Dependabot, and a tagged/manual Kodi repository publication workflow.
 - [x] Build and test the repository installer ZIP, update-feed layout/digest, and matching manifest versions, without actually publishing them.
 
-The current suite has 83 tests and approximately 83% branch coverage. Counts can increase as more regressions are added; the authoritative result is the test/coverage command output for the release commit. A CI workflow configured in the repository is not a successful hosted CI run.
+The current suite has 84 tests and approximately 83% branch coverage. Counts can increase as more regressions are added; the authoritative result is the test/coverage command output for the release commit. A CI workflow configured in the repository is not a successful hosted CI run.
 
 ## Before a stable release
 
-- [ ] Inspect hosted GitHub Actions results after pushing. CodeQL and dependency review require a public repository or suitable GitHub security entitlement; the committed workflows skip private repositories by default.
+- [x] Inspect hosted GitHub Actions results for the initial release: all automated checks passed. Recheck the patch-release commit before publication. CodeQL and dependency review require a public repository or suitable GitHub security entitlement; the committed workflows skip private repositories by default.
 - [ ] On a fresh **real Kodi profile**, install the generated ZIP through Kodi's add-on manager and verify dependency installation/enabling, including a device where InputStream Adaptive is absent. Clean archive/import tests and the isolated Pi suite do not exercise Kodi's installer UI.
-- [ ] Verify an upgrade through Kodi, including session import from the old test add-on and later same-ID upgrades. Import is opt-in; avoid using both installations after copying a rotating refresh token.
+- [ ] Verify same-ID upgrades through Kodi retain the normal account session.
 - [ ] With a human confirming any loan consumption, verify movie **and episode** playback, existing/expired/website loans, audio/subtitles, and ambiguous network failures against the service.
 - [ ] Exercise direct MP4, HLS, DASH/Widevine, and supported Android PlayReady on the specific Kodi/device/provider combinations being advertised. All combinations are not certified by unit tests.
 - [ ] Compare a representative set of website-visible titles/genres/lists against the API-backed catalog. The builder verifies response counts/duplicates to avoid silent truncation, but does not claim that one service endpoint exposes every title across every eFilm client.

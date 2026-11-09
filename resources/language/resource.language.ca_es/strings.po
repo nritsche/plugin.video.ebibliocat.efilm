@@ -46,18 +46,6 @@ msgctxt "#30010"
 msgid "Sign out of eFilm"
 msgstr "Tanca la sessió a eFilm"
 
-msgctxt "#30011"
-msgid "Import test-version sign-in"
-msgstr "Importa la sessió de la versió de prova"
-
-msgctxt "#30012"
-msgid "Import your existing test-version sign-in? The old installation remains separate."
-msgstr "Vols importar la sessió de prova? La instal·lació antiga es manté separada."
-
-msgctxt "#30013"
-msgid "Sign-in imported. Uninstall the test version after checking the new version."
-msgstr "Sessió importada. Desinstal·la la versió de prova després de comprovar la nova."
-
 msgctxt "#30014"
 msgid "eFilm library username"
 msgstr "Usuari de la biblioteca eFilm"

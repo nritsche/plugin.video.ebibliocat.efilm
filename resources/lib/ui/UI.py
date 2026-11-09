@@ -1,7 +1,6 @@
 """Validated plugin routing, localized dialogs, and Kodi item rendering."""
 
 import re
-from pathlib import Path
 from urllib.parse import unquote
 
 import xbmc
@@ -56,7 +55,6 @@ class UI:
                 "": self._home,
                 "login": self._login,
                 "logout": self._logout,
-                "import_session": self._import_session,
                 "all_movies": self._movies,
                 "movies": self._movies,
                 "alphabet": self._alphabet,
@@ -102,20 +100,11 @@ class UI:
                     xbmcplugin.endOfDirectory(self.addon_handle, succeeded=False)
                 self._finished = True
 
-    def _legacy_path(self):
-        return Path(
-            xbmcvfs.translatePath(
-                "special://profile/addon_data/plugin.video.ebibliocat.efilm.pitest/session.json"
-            )
-        )
-
     def _home(self):
         folders = self.ebiblio.listHome()
         signed_in = self.ebiblio.session.has_session()
         key = "logout" if signed_in else "login"
         folders.append(FolderVideo(self.strs.get(key), "", key))
-        if not signed_in and self._legacy_path().is_file():
-            folders.append(FolderVideo(self.strs.get("import_session"), "", "import_session"))
         self.listFolder(folders)
 
     def _login(self):
@@ -130,13 +119,6 @@ class UI:
         self._notice("signed_out")
         self._finish()
         xbmc.executebuiltin("Container.Refresh")
-
-    def _import_session(self):
-        if xbmcgui.Dialog().yesno("eBiblioCat eFilm", self.strs.get("import_confirm")):
-            self.ebiblio.session.import_session(self._legacy_path())
-            self._notice("imported")
-        self._finish()
-        xbmc.executebuiltin("Container.Update({})".format(self.base_url))
 
     def _clear_cache(self):
         self.ebiblio.session.cache.clear()

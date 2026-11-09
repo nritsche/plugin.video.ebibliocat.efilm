@@ -11,12 +11,7 @@ MESSAGES = {
     "clear_cache": (30008, "Clear catalog cache"),
     "login": (30009, "Sign in to eFilm"),
     "logout": (30010, "Sign out of eFilm"),
-    "import_session": (30011, "Import test-version sign-in"),
-    "import_confirm": (
-        30012,
-        "Import your existing test-version sign-in? The old installation remains separate.",
-    ),
-    "imported": (30013, "Sign-in imported. Uninstall the test version after checking the new version."),
+    # IDs 30011–30013 are retired. Keep all remaining IDs stable across updates.
     "username": (30014, "eFilm library username"),
     "password": (30015, "eFilm password"),
     "signed_in": (30016, "Signed in to eFilm."),

@@ -98,19 +98,6 @@ class EfilmSession:
             except OSError as error:
                 raise EfilmError("storage_error") from error
 
-    def import_session(self, legacy_path):
-        with file_lock(self.profile, "auth"), file_lock(self.profile, "session"):
-            if self.has_session():
-                return False
-            value = read_json(legacy_path, {})
-            if not isinstance(value, dict) or not isinstance(value.get("refresh"), str):
-                raise EfilmError("session_expired")
-            if not value["refresh"]:
-                raise EfilmError("session_expired")
-            # Deliberately do not trust old saved loan IDs; reconcile with the service.
-            write_json(self.session_path, {"refresh": value["refresh"], "loans": {}})
-            return True
-
     def login(self, username, password):
         with file_lock(self.profile, "auth"):
             response = object_response(

@@ -1,5 +1,8 @@
+v0.2.1
+- Simplify account navigation to sign-in and sign-out only.
+
 v0.2.0
-- Adopt the permanent plugin.video.ebibliocat.efilm ID and offer test-profile session import.
+- Adopt the permanent plugin.video.ebibliocat.efilm ID.
 - Add safe loan reconciliation, session persistence, and playback prerequisite checks.
 - Add search, A-Z navigation, progress/cancellation, refresh, and resilient caching.
 - Remove inherited TV3 routes and artwork; localize the current interface.

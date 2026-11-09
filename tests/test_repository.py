@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 import subprocess
 
+from scripts.build_release import ROOT
 from scripts.build_repository import REPOSITORY_ID, build_repository, feed_base
 from scripts.publish_repository import publish
 
@@ -62,7 +63,10 @@ class RepositoryTest(unittest.TestCase):
         with patch.dict("os.environ", {"GH_TOKEN": "synthetic-placeholder"}), patch(
             "scripts.publish_repository.subprocess.run", side_effect=command
         ):
-            publish("v0.2.0", "nritsche/plugin.video.ebibliocat.efilm")
+            publish(
+                "v" + ET.parse(ROOT / "addon.xml").getroot().attrib["version"],
+                "nritsche/plugin.video.ebibliocat.efilm",
+            )
         commands = [args for args, _ in calls]
         self.assertIn(["git", "push", "origin", "HEAD:refs/heads/kodi-repository"], commands)
         release = next(args for args in commands if args[:3] == ["gh", "release", "create"])
