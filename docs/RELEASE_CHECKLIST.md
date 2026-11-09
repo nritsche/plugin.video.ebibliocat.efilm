@@ -1,6 +1,6 @@
 # Release procedure and verification record
 
-Version under review: **0.2.1**, prepared 2026-11-09. This file distinguishes completed engineering checks from manual release acceptance. Do not turn a pending check into a claim of supported device/provider playback.
+Version under review: **0.2.2**, prepared 2026-11-09. This file distinguishes completed engineering checks from manual release acceptance. Do not turn a pending check into a claim of supported device/provider playback.
 
 ## Completed locally
 
@@ -20,9 +20,16 @@ Version under review: **0.2.1**, prepared 2026-11-09. This file distinguishes co
 - [x] Run checksum-verified Gitleaks 8.30.1 against reachable history and intended source files: no findings. Existing contributor identities/history are retained; no real credential requiring rotation/history rewriting was found.
 - [x] Pass actionlint 1.7.12 and zizmor 1.32.0 locally; pin external actions to verified commits and use restricted workflow permissions.
 - [x] Add coverage reporting with an 80% branch-coverage gate, CodeQL, dependency review, Dependabot, and a tagged/manual Kodi repository publication workflow.
-- [x] Build and test the repository installer ZIP, update-feed layout/digest, and matching manifest versions, without actually publishing them.
+- [x] Build/test the repository installer ZIP, update-feed layout/digest, and matching manifest versions; verify published prereleases.
 
-The current suite has 84 tests and approximately 83% branch coverage. Counts can increase as more regressions are added; the authoritative result is the test/coverage command output for the release commit. A CI workflow configured in the repository is not a successful hosted CI run.
+The current suite has 85 tests and approximately 83% branch coverage. Counts can increase as more regressions are added; the authoritative result is the test/coverage command output for the release commit. A CI workflow configured in the repository is not a successful hosted CI run.
+
+## Live Pi verification
+
+- [x] User confirmed movie playback works.
+- [x] User confirmed the recovered library icon appears.
+- [x] Confirmed HTTP 406 / code 0010 means loan allowance exhausted; localized the message.
+- [x] Published v0.2.0/v0.2.1 prereleases and verified the public repository feed.
 
 ## Before a stable release
 
@@ -33,7 +40,7 @@ The current suite has 84 tests and approximately 83% branch coverage. Counts can
 - [ ] Exercise direct MP4, HLS, DASH/Widevine, and supported Android PlayReady on the specific Kodi/device/provider combinations being advertised. All combinations are not certified by unit tests.
 - [ ] Compare a representative set of website-visible titles/genres/lists against the API-backed catalog. The builder verifies response counts/duplicates to avoid silent truncation, but does not claim that one service endpoint exposes every title across every eFilm client.
 - [ ] Enable/check GitHub dependency graph/alerts, private vulnerability reporting, and desired branch rules; these are host settings, not local source changes.
-- [ ] Review current official Kodi repository submission checks if submitting there. Artwork/package metadata now follow the published format rules, but Team Kodi acceptance is not established by this audit.
+- [ ] Review current official Kodi repository submission checks if submitting there. The restored 300×364 transparent logo needs a square opaque variant for official submission; further checker/reviewer requirements may apply.
 
 These manual checks require a real Kodi UI, service-account actions, additional hardware/provider access, or GitHub account settings. They were not silently performed, and no new loan was created for this cleanup.
 

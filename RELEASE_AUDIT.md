@@ -1,6 +1,6 @@
 # Release audit resolution
 
-Updated: 2026-11-09 for version 0.2.1. The original findings against `de7002d` are retained in [docs/AUDIT_BASELINE.md](docs/AUDIT_BASELINE.md). This resolution records code/documentation work and its verification; it does not certify untested devices or a public release.
+Updated: 2026-11-09 for version 0.2.2. The original findings against `de7002d` are retained in [docs/AUDIT_BASELINE.md](docs/AUDIT_BASELINE.md). This resolution records code/documentation work and its verification; it does not certify untested devices or a public release.
 
 | Issue | Resolution | Evidence |
 | --- | --- | --- |
