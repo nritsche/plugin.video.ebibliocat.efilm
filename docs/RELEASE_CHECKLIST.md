@@ -1,6 +1,6 @@
 # Release procedure and verification record
 
-Version under review: **0.2.3**, prepared 2026-11-10. This file distinguishes completed engineering checks from manual release acceptance. Do not turn a pending check into a claim of supported device/provider playback.
+Version under review: **0.2.3**, prepared 2026-11-11. This file distinguishes completed engineering checks from manual release acceptance. Do not turn a pending check into a claim of supported device/provider playback.
 
 ## Completed locally
 
@@ -29,7 +29,9 @@ The current suite has 85 tests and approximately 83% branch coverage. Counts can
 - [x] User confirmed movie playback works.
 - [x] User confirmed the recovered library icon appears.
 - [x] Confirmed HTTP 406 / code 0010 means loan allowance exhausted; localized the message.
-- [x] Published v0.2.0/v0.2.1 prereleases and verified the public repository feed.
+- [x] Published prereleases through v0.2.3; verified GitHub test/security/publish workflows and public release downloads.
+- [x] Installed the published, checksum-verified v0.2.3 plugin on the Pi. Kodi recognizes version 0.2.3 and its nine home-menu entries. The account-session file and Kodi application version were unchanged; the prior plugin was backed up.
+- [x] Opened draft official Kodi submission https://github.com/xbmc/repo-plugins/pull/4892 with a single commit and a zero-error/zero-warning official checker result.
 
 ## Before a stable release
 

@@ -11,7 +11,8 @@ Prepared 2026-11-11 for **v0.2.3**. Team Kodi review and acceptance remain separ
 - Release: https://github.com/nritsche/plugin.video.ebibliocat.efilm/releases/tag/v0.2.3
 - Submit only the video add-on; the third-party repository installer/update feed are excluded.
 - Single commit: `[plugin.video.ebibliocat.efilm] 0.2.3`, branch `efilm-v0.2.3`.
-- PR URL: pending creation after publication.
+- Draft PR: https://github.com/xbmc/repo-plugins/pull/4892
+- Submission commit: `08c49fa71cf388151f98c92126dd3f8a0c975484` (one commit against the official Matrix branch).
 
 ## Official checker result
 
@@ -32,7 +33,7 @@ Other validation: 85 tests on Python 3.8 and 3.14, approximately 83% coverage, R
 
 ## Review status
 
-Submit as a draft for initial review. Episode playback, fresh-profile dependency installation, and broader device/provider checks remain open in [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). No test loans are consumed automatically. The third-party feed remains a prerelease channel; neither these checks nor the draft PR claim stable certification or official catalog acceptance.
+Submitted as a draft for initial review on 2026-11-11. Episode playback, fresh-profile dependency installation, and broader device/provider checks remain open in [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). No test loans are consumed automatically. The third-party feed remains a prerelease channel; neither these checks nor the draft PR claim stable certification or official catalog acceptance.
 
 The previous v0.2.2 candidate had two icon errors and three warnings; it is superseded. Published tags/ZIPs are not rewritten. Local submission patches under `dist/` are not release inputs.
 
