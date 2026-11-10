@@ -32,3 +32,7 @@ python scripts/build_repository.py
 ```
 
 The resulting feed is in `dist/repository/`. The builder performs no network requests or GitHub writes. Run `python scripts/check_workflows.py --download` after installing `requirements-security.txt` to check workflow syntax and security; this downloads a checksum-pinned Linux x86_64 actionlint binary. On other systems pass `--actionlint PATH`. `scripts/check_secrets.py` similarly accepts `--download` or a pinned local `--binary`.
+
+## Official catalog preparation
+
+See [KODI_SUBMISSION.md](KODI_SUBMISSION.md) for the v0.2.2 candidate, official checker findings, and the remaining fork/authentication step. The candidate is not an opened upstream PR. Repository-owner settings are described in [GITHUB_SECURITY.md](GITHUB_SECURITY.md).
