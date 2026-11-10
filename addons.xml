@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<addons><addon id="plugin.video.ebibliocat.efilm" name="eBiblioCat eFilm" version="0.2.2" provider-name="Rick Nitsche">
+<addons><addon id="plugin.video.ebibliocat.efilm" name="eBiblioCat eFilm" version="0.2.3" provider-name="Rick Nitsche">
     <requires>
         <import addon="xbmc.python" version="3.0.0" />
         <import addon="script.module.beautifulsoup4" version="4.6.3" />
@@ -20,7 +20,7 @@
         <language>ca es en</language>
         <license>GPL-2.0-or-later</license>
         <source>https://github.com/nritsche/plugin.video.ebibliocat.efilm</source>
-        <website>https://ebibliocat.efilm.info/</website>
+        <website>https://ebibliocat.efilm.info/landing</website>
         <assets>
             <icon>resources/icon.png</icon>
             <fanart>resources/fanart.jpg</fanart>
