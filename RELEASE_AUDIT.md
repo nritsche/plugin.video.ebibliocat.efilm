@@ -1,6 +1,6 @@
 # Release audit resolution
 
-Updated: 2026-11-09 for version 0.2.2. The original findings against `de7002d` are retained in [docs/AUDIT_BASELINE.md](docs/AUDIT_BASELINE.md). This resolution records code/documentation work and its verification; it does not certify untested devices or a public release.
+Updated: 2026-11-10 for version 0.2.3. The original findings against `de7002d` are retained in [docs/AUDIT_BASELINE.md](docs/AUDIT_BASELINE.md). This resolution records code/documentation work and its verification; it does not certify untested devices or a public release.
 
 | Issue | Resolution | Evidence |
 | --- | --- | --- |
@@ -29,7 +29,7 @@ Updated: 2026-11-09 for version 0.2.2. The original findings against `de7002d` a
 | QUALITY-05 Python cleanup | Fixed | Removed Python 2 shims/future, unused legacy code/imports, invalid escapes; split storage/HTTP/cache/validation/playback/UI; Ruff lint/format. |
 | QUALITY-06 Kodi metadata | Fixed | Version-aware information tags, movies/TV shows/seasons/episodes content types, year/duration/genres/episode metadata. |
 | QUALITY-07 Contributor/support conventions | Added | CONTRIBUTING.md, SECURITY.md, issue template, architecture/CI/distribution/release documents. |
-| KODI-01 Official submission packaging | Assets/package prepared | Recovered original library icon (300×364 with transparency), 1280×720 JPEG fanart, artwork attribution, no compiled artifacts. Official submission/review remains separate. |
+| KODI-01 Official submission packaging | Assets/package prepared | Square opaque library icon (512×512 RGB), 1280×720 JPEG fanart, artwork attribution, no compiled artifacts. Official submission/review remains separate. |
 
 Additional requested automation: pinned GitHub Actions for Ruff style/static checking, cross-version/Windows regression tests, branch coverage/XML artifacts, Gitleaks, actionlint, zizmor, CodeQL, dependency review, Dependabot, deterministic artifact builds, and an **opt-in** tagged/manual workflow publishing a Kodi repository feed and prerelease assets. Ordinary source pushes do not publish releases or change repository visibility.
 

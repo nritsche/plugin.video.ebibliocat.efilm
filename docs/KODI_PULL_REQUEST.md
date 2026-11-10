@@ -1,13 +1,15 @@
-# [plugin.video.ebibliocat.efilm] 0.2.2
+# [plugin.video.ebibliocat.efilm] 0.2.3
 
-Draft submission of an unofficial eBiblioCat eFilm video add-on. Users browse the service's movie catalog, genres, curated lists, and series, then sign in with an eligible library account. New loans require confirmation; existing active loans are reused. The service controls account eligibility, regional availability, loan limits, and stream availability.
+Initial submission of an unofficial eBiblioCat eFilm video add-on. Users browse movies, genres, curated lists, and series, then sign in with an eligible library account. New loans require confirmation; existing active loans are reused. The service controls account eligibility, regional availability, loan limits, and stream availability. The add-on does not bypass these restrictions.
 
-Source: https://github.com/nritsche/plugin.video.ebibliocat.efilm/tree/v0.2.2
-License: GPL-2.0-or-later for code; recovered library branding is attributed separately.
-Minimum declared Kodi version: 19 / Python 3.
+Source: https://github.com/nritsche/plugin.video.ebibliocat.efilm/tree/v0.2.3
+Code license: GPL-2.0-or-later. Library branding is attributed separately in resources/artwork/LICENSE.txt.
+Minimum declared Kodi version: 19 / Python 3. Runtime modules use lower-case filenames; only the video add-on is included, without a third-party repository installer.
 
-Validation: 85 unit tests pass, 83% coverage, Ruff lint/format, workflow checks, Gitleaks history/source scan, deterministic packaging, and verified public release checksums/feed. The user confirmed movie playback and icon display on a Raspberry Pi running Kodi 20. Episode playback, a fresh-profile installer/upgrade test, and broader provider/device checks are pending.
+Validation:
 
-This draft is not ready to merge: Kodi's checker reports two icon errors (transparency and 300×364 dimensions), plus warnings about a website redirect, entry-point length, and the packaged artwork SVG. These must be resolved and the final package rechecked before requesting approval. Existing mixed-case Python module filenames also need review against the submission guidelines.
+- Official kodi-addon-checker 0.0.36 against Matrix: zero errors and zero warnings, including dependency and cross-branch checks. Fresh official repository manifests were cached locally to avoid an unreachable mirror; dependency checks were not skipped.
+- 85 unit tests pass on Python 3.8 and 3.14; approximately 83% coverage. Ruff, actionlint/zizmor, and Gitleaks history/source scanning pass.
+- Deterministic ZIP builds and clean-extraction application imports pass. The user confirmed movie playback and logo display on a Raspberry Pi running Kodi 20.
 
-The candidate contains only the video add-on; it does not install a third-party repository. No user credentials, session files, or captured authenticated responses are included. The third-party release is currently a prerelease; this draft does not claim official catalog acceptance or stable certification.
+This is a draft for initial review. Episode playback, fresh-profile dependency installation, and broader device/provider checks remain pending; the independent GitHub release is a prerelease. An eligible eBiblioCat library account is required for authenticated testing. No credentials or captured authenticated responses are included in this submission.

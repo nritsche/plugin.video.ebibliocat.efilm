@@ -44,7 +44,7 @@ class Addon:
             "profile": self.profile,
             "path": str(Path(__file__).resolve().parents[1]),
             "id": "plugin.video.ebibliocat.efilm",
-            "version": "0.2.2",
+            "version": "0.2.3",
         }[key]
 
     def getLocalizedString(self, code):

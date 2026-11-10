@@ -5,9 +5,9 @@ import unicodedata
 from html import unescape
 from urllib.parse import quote
 
-from resources.lib.ebibliocat.Errors import EfilmError
-from resources.lib.ebibliocat.Validation import valid_id, valid_product
-from resources.lib.video.Video import Video
+from resources.lib.ebibliocat.errors import EfilmError
+from resources.lib.ebibliocat.validation import valid_id, valid_product
+from resources.lib.video.video import Video
 
 PAGE_SIZE = 24
 

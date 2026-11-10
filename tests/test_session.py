@@ -12,13 +12,13 @@ from tests.kodi_stubs import Addon, install
 
 install()
 
-from resources.lib.ebibliocat.EfilmAPI import EfilmSession
-from resources.lib.ebibliocat.Errors import EfilmError
-from resources.lib.ebibliocat.Storage import file_lock, write_json
+from resources.lib.ebibliocat.efilmapi import EfilmSession
+from resources.lib.ebibliocat.errors import EfilmError
+from resources.lib.ebibliocat.storage import file_lock, write_json
 
 
 def increment_profile_counter(profile):
-    from resources.lib.ebibliocat.Storage import read_json
+    from resources.lib.ebibliocat.storage import read_json
 
     for _ in range(3):
         with file_lock(profile, "counter"):
@@ -67,7 +67,7 @@ class SessionTest(unittest.TestCase):
     def test_atomic_replace_failure_preserves_previous_session(self):
         self.signed_in()
         before = Path(self.session.session_path).read_bytes()
-        with patch("resources.lib.ebibliocat.Storage.os.replace", side_effect=PermissionError):
+        with patch("resources.lib.ebibliocat.storage.os.replace", side_effect=PermissionError):
             with self.assertRaises(EfilmError):
                 self.session._save_session("replacement")
         self.assertEqual(Path(self.session.session_path).read_bytes(), before)
@@ -124,7 +124,7 @@ class SessionTest(unittest.TestCase):
 
     def test_signout_does_not_report_success_on_permission_failure(self):
         self.signed_in()
-        with patch("resources.lib.ebibliocat.EfilmAPI.os.unlink", side_effect=PermissionError):
+        with patch("resources.lib.ebibliocat.efilmapi.os.unlink", side_effect=PermissionError):
             with self.assertRaises(EfilmError):
                 self.session.clear()
         self.assertTrue(self.session.has_session())

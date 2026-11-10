@@ -10,10 +10,10 @@ from tests.kodi_stubs import Addon, install
 
 install()
 
-from resources.lib.ebibliocat.Cache import Cache
-from resources.lib.ebibliocat.EfilmAPI import EfilmSession
-from resources.lib.ebibliocat.Errors import Cancelled, EfilmError
-from resources.lib.ebibliocat.Storage import write_json
+from resources.lib.ebibliocat.cache import Cache
+from resources.lib.ebibliocat.efilmapi import EfilmSession
+from resources.lib.ebibliocat.errors import Cancelled, EfilmError
+from resources.lib.ebibliocat.storage import write_json
 from tests.test_catalog import movie
 
 
@@ -113,7 +113,7 @@ class CacheTest(unittest.TestCase):
         self.assertEqual(self.session.movies(), [])
 
     def test_cancel_while_waiting_for_another_catalog_builder(self):
-        from resources.lib.ebibliocat.Storage import file_lock
+        from resources.lib.ebibliocat.storage import file_lock
 
         with file_lock(self.session.cache.directory, "movies"):
             with self.assertRaises(Cancelled):

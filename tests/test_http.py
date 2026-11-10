@@ -5,8 +5,8 @@ import unittest
 import urllib.error
 from unittest.mock import Mock, patch
 
-from resources.lib.ebibliocat import HTTP
-from resources.lib.ebibliocat.Errors import EfilmError
+from resources.lib.ebibliocat import http as HTTP
+from resources.lib.ebibliocat.errors import EfilmError
 
 
 class HTTPTest(unittest.TestCase):

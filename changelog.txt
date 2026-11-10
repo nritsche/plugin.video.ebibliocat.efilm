@@ -1,3 +1,8 @@
+v0.2.3
+- Prepare official Kodi submission with square opaque library artwork.
+- Use lower-case Python module filenames and omit unused artwork source from packages.
+- Simplify the entry point and update service website metadata.
+
 v0.2.2
 - Restore the original library logo.
 - Explain exhausted eFilm loan allowances instead of showing a generic service error.

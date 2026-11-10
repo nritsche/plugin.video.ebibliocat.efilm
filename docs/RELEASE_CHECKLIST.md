@@ -1,6 +1,6 @@
 # Release procedure and verification record
 
-Version under review: **0.2.2**, prepared 2026-11-09. This file distinguishes completed engineering checks from manual release acceptance. Do not turn a pending check into a claim of supported device/provider playback.
+Version under review: **0.2.3**, prepared 2026-11-10. This file distinguishes completed engineering checks from manual release acceptance. Do not turn a pending check into a claim of supported device/provider playback.
 
 ## Completed locally
 
@@ -40,7 +40,7 @@ The current suite has 85 tests and approximately 83% branch coverage. Counts can
 - [ ] Exercise direct MP4, HLS, DASH/Widevine, and supported Android PlayReady on the specific Kodi/device/provider combinations being advertised. All combinations are not certified by unit tests.
 - [ ] Compare a representative set of website-visible titles/genres/lists against the API-backed catalog. The builder verifies response counts/duplicates to avoid silent truncation, but does not claim that one service endpoint exposes every title across every eFilm client.
 - [ ] Enable/check GitHub dependency graph/alerts, private vulnerability reporting, and desired branch rules; these are host settings, not local source changes.
-- [ ] Review current official Kodi repository submission checks if submitting there. The restored 300×364 transparent logo needs a square opaque variant for official submission; further checker/reviewer requirements may apply.
+- [x] Review current official Kodi repository submission checks and pass the official checker with zero errors/warnings. The package now uses a 512×512 opaque icon, lower-case Python modules, and excludes unused artwork sources. Official checker/reviewer acceptance is recorded in KODI_SUBMISSION.md.
 
 These manual checks require a real Kodi UI, service-account actions, additional hardware/provider access, or GitHub account settings. They were not silently performed, and no new loan was created for this cleanup.
 

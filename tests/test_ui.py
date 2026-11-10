@@ -12,8 +12,8 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-from resources.lib.ui.UI import UI
-from resources.lib.video.FolderVideo import FolderVideo
+from resources.lib.ui.ui import UI
+from resources.lib.video.foldervideo import FolderVideo
 from tests.test_catalog import movie
 
 BASE = "plugin://plugin.video.ebibliocat.efilm/"
@@ -72,7 +72,7 @@ class UITest(unittest.TestCase):
         def translate(path):
             return path.replace("special://profile/", self.tmp.name + "/")
 
-        with patch("resources.lib.ui.UI.xbmcvfs.translatePath", side_effect=translate):
+        with patch("resources.lib.ui.ui.xbmcvfs.translatePath", side_effect=translate):
             ui = self.ui()
             ui.run()
         modes = [

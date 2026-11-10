@@ -8,7 +8,7 @@ import threading
 import time
 from pathlib import Path
 
-from resources.lib.ebibliocat.Errors import Cancelled, EfilmError
+from resources.lib.ebibliocat.errors import Cancelled, EfilmError
 
 _LOCKS = {}
 _LOCKS_GUARD = threading.Lock()

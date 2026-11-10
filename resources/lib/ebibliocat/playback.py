@@ -7,7 +7,7 @@ from urllib.parse import urlencode, urlsplit
 import xbmc
 import xbmcgui
 
-from resources.lib.ebibliocat.Errors import EfilmError
+from resources.lib.ebibliocat.errors import EfilmError
 
 
 @dataclass

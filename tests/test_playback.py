@@ -12,9 +12,9 @@ import inputstreamhelper
 import xbmc
 import xbmcgui
 import xbmcplugin
-from resources.lib.ebibliocat import Playback
-from resources.lib.ebibliocat.EBibliocat import EBibliocat
-from resources.lib.ebibliocat.Errors import EfilmError
+from resources.lib.ebibliocat import playback as Playback
+from resources.lib.ebibliocat.ebibliocat import EBibliocat
+from resources.lib.ebibliocat.errors import EfilmError
 
 TRACK = {"language": {"id": 6, "name_en": "English"}, "subtitle": {"id": 88, "name_en": "None"}}
 PRODUCT = {"id": 1, "name": "Synthetic title", "slug": "synthetic", "languages": [TRACK]}
@@ -211,7 +211,7 @@ class PlaybackTest(unittest.TestCase):
             + json.dumps({"props": {"pageProps": props}})
             + "</script>"
         ).encode()
-        with patch("resources.lib.ebibliocat.HTTP.request", return_value=html) as request:
+        with patch("resources.lib.ebibliocat.http.request", return_value=html) as request:
             browser = EBibliocat("", Addon(self.tmp.name))
             product = browser._product_detail(1, "synthetic", 10, "show")
             self.assertEqual(product["id"], 1)

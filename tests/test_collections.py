@@ -6,10 +6,10 @@ from tests.kodi_stubs import Addon, install
 
 install()
 
-from resources.lib.ebibliocat import Home
-from resources.lib.ebibliocat.EBiblioStrings import EBiblioStrings
-from resources.lib.ebibliocat.EfilmAPI import EfilmSession
-from resources.lib.ebibliocat.Errors import EfilmError
+from resources.lib.ebibliocat import home as Home
+from resources.lib.ebibliocat.ebibliostrings import EBiblioStrings
+from resources.lib.ebibliocat.efilmapi import EfilmSession
+from resources.lib.ebibliocat.errors import EfilmError
 
 
 class CollectionsTest(unittest.TestCase):

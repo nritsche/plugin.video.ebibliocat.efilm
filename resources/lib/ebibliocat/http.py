@@ -5,7 +5,7 @@ import socket
 import urllib.error
 import urllib.request
 
-from resources.lib.ebibliocat.Errors import EfilmError
+from resources.lib.ebibliocat.errors import EfilmError
 
 TIMEOUT = 20
 MAX_RESPONSE = 32 * 1024 * 1024

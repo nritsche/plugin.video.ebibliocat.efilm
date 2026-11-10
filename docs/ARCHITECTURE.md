@@ -1,10 +1,10 @@
 # Architecture
 
-`addon.py` validates the Kodi entry arguments and constructs `UI`. `UI.py` owns the explicit route table, dialogs, filters, content types, and item rendering. It never accepts a raw external playback URL.
+`addon.py` validates the Kodi entry arguments and constructs `UI`. `ui.py` owns the explicit route table, dialogs, filters, content types, and item rendering. It never accepts a raw external playback URL.
 
-`EBibliocat.py` orchestrates catalog views and user-confirmed playback. It delegates schema checks and pure transformations to `Validation.py`/`Catalog.py`, provider stream normalization to `Playback.py`, and service access to `EfilmAPI.py`. Movie and series website detail data currently come from Next.js `__NEXT_DATA__`; a website redesign can require an integration update. Full website dumps are not test fixtures.
+`ebibliocat.py` orchestrates catalog views and user-confirmed playback. It delegates schema checks and pure transformations to `validation.py`/`catalog.py`, provider stream normalization to `playback.py`, and service access to `efilmapi.py`. Movie and series website detail data currently come from Next.js `__NEXT_DATA__`; a website redesign can require an integration update. Full website dumps are not test fixtures.
 
-`EfilmAPI.py` centralizes the eBiblioCat client ID and public/authenticated endpoints. All HTTP goes through bounded `HTTP.py` requests and typed, sanitized errors. `Storage.py` implements atomic JSON replacement and thread/process locks (POSIX flock / Windows locking). `Cache.py` caches only public directory data and coordinates rebuilds. Auth refresh, session updates, catalog rebuilds, and per-title loan operations have separate locks.
+`efilmapi.py` centralizes the eBiblioCat client ID and public/authenticated endpoints. All HTTP goes through bounded `http.py` requests and typed, sanitized errors. `storage.py` implements atomic JSON replacement and thread/process locks (POSIX flock / Windows locking). `cache.py` caches only public directory data and coordinates rebuilds. Auth refresh, session updates, catalog rebuilds, and per-title loan operations have separate locks.
 
 Loan flow: require sign-in → fetch current title/episode metadata → choose tracks → check known playback prerequisites → lock this title → read active loans from eFilm → explicit Resume/Borrow confirmation → create at most one new loan → obtain playback response → verify actual stream/DRM prerequisites → resolve the Kodi player. An explicit 401 can refresh authentication once; an uncertain loan POST is never repeated. An authoritative active-loans read recovers website loans and ambiguous outcomes. Reborrowing after expiry requires a new confirmation.
 

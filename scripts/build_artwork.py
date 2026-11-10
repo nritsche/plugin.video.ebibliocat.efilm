@@ -1,7 +1,7 @@
-"""Create the original geometric fanart; preserve the recovered library icon.
+"""Build release artwork from the square icon master and geometric fanart.
 
 Copyright 2026 Rick Nitsche and contributors. GPL-2.0-or-later.
-Requires Pillow (developer tool only); no fonts or third-party artwork are used.
+Requires Pillow (developer tool only). See resources/artwork/LICENSE.txt.
 """
 
 from pathlib import Path
@@ -29,6 +29,8 @@ def artwork(width, height):
 
 
 def main():
+    with Image.open(ROOT / "resources/artwork/library-icon-master.png") as icon:
+        icon.convert("RGB").resize((512, 512), Image.Resampling.LANCZOS).save(ROOT / "resources/icon.png")
     artwork(1280, 720).save(ROOT / "resources/fanart.jpg", quality=92)
     svg = """<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
 <rect width="512" height="512" fill="#101d31"/>

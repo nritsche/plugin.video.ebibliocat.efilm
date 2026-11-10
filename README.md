@@ -2,7 +2,7 @@
 
 An unofficial, community-maintained Kodi add-on for the **eBiblioCat** eFilm service. You need a library account eligible for that service. This project is not affiliated with eFilm, the library network, or Team Kodi, and does not provide a subscription or media files.
 
-Add-on ID: `plugin.video.ebibliocat.efilm` · Version: **0.2.2** · License: **GPL-2.0-or-later**
+Add-on ID: `plugin.video.ebibliocat.efilm` · Version: **0.2.3** · License: **GPL-2.0-or-later**
 
 This version prepares the experimental Pi integration for public testing. See [release verification](docs/RELEASE_CHECKLIST.md) for checks performed and device/provider checks still required before describing it as a stable release.
 
@@ -10,7 +10,7 @@ This version prepares the experimental Pi integration for public testing. See [r
 
 For automatic updates, prefer the **repository installer ZIP** from a published release, then use **Install from repository → eBiblioCat eFilm repository → Video add-ons**. See [distribution](docs/DISTRIBUTION.md) for the opt-in publishing workflow and how this differs from Kodi’s official catalog.
 
-1. Download `plugin.video.ebibliocat.efilm-0.2.2.zip` from this project's [GitHub Releases](https://github.com/nritsche/plugin.video.ebibliocat.efilm/releases), when a maintainer has published one, or [build it yourself](#development).
+1. Download `plugin.video.ebibliocat.efilm-0.2.3.zip` from this project's [GitHub Releases](https://github.com/nritsche/plugin.video.ebibliocat.efilm/releases), when a maintainer has published one, or [build it yourself](#development).
 2. In Kodi, open **Settings → Add-ons → Install from zip file**, allow installation from unknown sources if Kodi requests it, and select the ZIP. Do not install GitHub's automatic source-code ZIP as a Kodi add-on.
 3. Open **Add-ons → Video add-ons → eBiblioCat eFilm**, then **Sign in to eFilm**. Use your eligible library username and password.
 4. InputStream Helper is a declared dependency. The add-on checks InputStream Adaptive before borrowing. On distributions that package binary Kodi add-ons separately, install the matching InputStream Adaptive package and enable it under **My add-ons → VideoPlayer InputStream**. DRM titles can require a supported Widevine installation; Helper guides setup when supported by your device.
@@ -71,4 +71,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md), [architecture](docs/ARCHITECTURE.md), an
 
 This project began as an adaptation of [jqandreu/plugin.video.tv3.cat](https://github.com/jqandreu/plugin.video.tv3.cat). Thanks to jqandreu and the upstream contributors recorded in the retained Git history. Inherited code remains under its applicable GPL terms; the project retains the full [GPL license](LICENSE.txt). The obsolete TV3 service implementation, translations, and branded artwork have been replaced or removed.
 
-The icon is the original Biblioteques Públiques de Catalunya logo recovered from this project’s Git history. The logo and branding belong to their respective owners. The geometric fanart is original project artwork; its source and artwork attribution are in [resources/artwork](resources/artwork/) and [scripts/build_artwork.py](scripts/build_artwork.py). Rebuilding fanart requires Pillow (`python -m pip install 'Pillow>=10.4,<13'`). Service names and logos identify the service being integrated; they do not imply endorsement.
+The icon is a square, opaque adaptation of the Biblioteques Públiques de Catalunya logo recovered from this project’s Git history. The original logo and the adapted icon master remain in the artwork source directory. The logo and branding belong to their respective owners. The geometric fanart is original project artwork; its source and artwork attribution are in [resources/artwork](resources/artwork/) and [scripts/build_artwork.py](scripts/build_artwork.py). Rebuilding artwork requires Pillow (`python -m pip install 'Pillow>=10.4,<13'`). Service names and logos identify the service being integrated; they do not imply endorsement.

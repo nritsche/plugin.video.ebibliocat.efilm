@@ -8,11 +8,11 @@ from urllib.parse import urlencode
 
 import xbmcvfs
 
-from resources.lib.ebibliocat import HTTP
-from resources.lib.ebibliocat.Cache import Cache
-from resources.lib.ebibliocat.Errors import Cancelled, EfilmError
-from resources.lib.ebibliocat.Storage import file_lock, read_json, write_json
-from resources.lib.ebibliocat.Validation import (
+from resources.lib.ebibliocat import http as HTTP
+from resources.lib.ebibliocat.cache import Cache
+from resources.lib.ebibliocat.errors import Cancelled, EfilmError
+from resources.lib.ebibliocat.storage import file_lock, read_json, write_json
+from resources.lib.ebibliocat.validation import (
     active_loan,
     object_response,
     page_response,

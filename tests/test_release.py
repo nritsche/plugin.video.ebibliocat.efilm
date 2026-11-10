@@ -28,7 +28,9 @@ class ReleaseTest(unittest.TestCase):
                 self.assertFalse(
                     any("/tests/" in name or "/tmp/" in name or "/.github/" in name for name in names)
                 )
-                self.assertIn("plugin.video.ebibliocat.efilm/resources/lib/ebibliocat/Playback.py", names)
+                self.assertIn("plugin.video.ebibliocat.efilm/resources/lib/ebibliocat/playback.py", names)
+                self.assertFalse(any(name.endswith(".svg") for name in names))
+                self.assertTrue(all(name == name.lower() for name in names if name.endswith(".py")))
                 archive.extractall(Path(temporary, "install"))
             # A separate process imports only the extracted application and explicit Kodi doubles.
             installed = Path(temporary, "install", "plugin.video.ebibliocat.efilm")
@@ -36,8 +38,8 @@ class ReleaseTest(unittest.TestCase):
                 "import sys; sys.path.insert(0, " + repr(str(ROOT)) + ");"
                 "from tests.kodi_stubs import install; install();"
                 "sys.path.remove(" + repr(str(ROOT)) + "); sys.path.insert(0, " + repr(str(installed)) + ");"
-                "from resources.lib.ui.UI import UI; import addon;"
-                'assert UI.__module__ == "resources.lib.ui.UI";'
+                "from resources.lib.ui.ui import UI; import addon;"
+                'assert UI.__module__ == "resources.lib.ui.ui";'
                 "assert addon.__file__.startswith(" + repr(str(installed)) + ")"
             )
             subprocess.run([sys.executable, "-c", code], cwd=temporary, check=True, capture_output=True)
@@ -57,7 +59,7 @@ class ReleaseTest(unittest.TestCase):
             ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
 
     def test_all_localization_keys_have_three_real_translations(self):
-        from resources.lib.ebibliocat.EBiblioStrings import MESSAGES
+        from resources.lib.ebibliocat.ebibliostrings import MESSAGES
 
         for locale in ("en_gb", "ca_es", "es_es"):
             text = (ROOT / ("resources/language/resource.language." + locale + "/strings.po")).read_text(

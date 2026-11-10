@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from resources.lib.ebibliocat.Errors import EfilmError
+from resources.lib.ebibliocat.errors import EfilmError
 
 
 def positive_id(value):

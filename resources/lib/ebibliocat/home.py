@@ -1,8 +1,8 @@
 """Live list directory, with small static fallbacks for service outages."""
 
-from resources.lib.ebibliocat.Validation import valid_id
-from resources.lib.utils.Urls import url_populars
-from resources.lib.video.FolderVideo import FolderVideo
+from resources.lib.ebibliocat.validation import valid_id
+from resources.lib.utils.urls import url_populars
+from resources.lib.video.foldervideo import FolderVideo
 
 
 def from_entries(entries, language="ca"):

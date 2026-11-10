@@ -1,6 +1,6 @@
 # GitHub security settings
 
-These are repository-owner settings; the local workflow files do not enable them. Git-over-SSH access does not let this task inspect or change administrator settings. Their current enablement state has not been verified.
+These are repository-owner settings; the local workflow files do not enable them. Git-over-SSH access does not let this task inspect or change administrator settings. The owner confirmed enabling Dependabot, secret scanning, push protection, and private vulnerability reporting on 2026-11-10. This is owner confirmation; administrator settings were not independently read through the API.
 
 In the repository's **Settings**, open the security sections (GitHub may show separate **Code security** and **Secret Protection** pages):
 

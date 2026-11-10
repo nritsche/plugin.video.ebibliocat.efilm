@@ -9,19 +9,19 @@ import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
 
-from resources.lib.ebibliocat import HTTP, Home, Playback
-from resources.lib.ebibliocat.Catalog import PAGE_SIZE, episode_product, movie_selection, video_from_product
-from resources.lib.ebibliocat.EBiblioStrings import EBiblioStrings
-from resources.lib.ebibliocat.EfilmAPI import WEB_BASE, EfilmSession
-from resources.lib.ebibliocat.Errors import Cancelled, EfilmError
-from resources.lib.ebibliocat.Validation import (
+from resources.lib.ebibliocat import http as HTTP, home as Home, playback as Playback
+from resources.lib.ebibliocat.catalog import PAGE_SIZE, episode_product, movie_selection, video_from_product
+from resources.lib.ebibliocat.ebibliostrings import EBiblioStrings
+from resources.lib.ebibliocat.efilmapi import WEB_BASE, EfilmSession
+from resources.lib.ebibliocat.errors import Cancelled, EfilmError
+from resources.lib.ebibliocat.validation import (
     object_response,
     page_response,
     positive_id,
     valid_id,
     valid_product,
 )
-from resources.lib.video.FolderVideo import FolderVideo
+from resources.lib.video.foldervideo import FolderVideo
 
 
 class EBibliocat:
@@ -154,10 +154,10 @@ class EBibliocat:
         except Cancelled:
             pass
         except EfilmError as error:
-            xbmc.log("eFilm playback failed: " + error.message, xbmc.LOGWARNING)
+            xbmc.log("eFilm playback failed: " + error.message, xbmc.LOGDEBUG)
             self._notify(error.message)
         except (OSError, ValueError, TypeError, KeyError, AttributeError):
-            xbmc.log("eFilm playback failed: invalid response or local I/O", xbmc.LOGERROR)
+            xbmc.log("eFilm playback failed: invalid response or local I/O", xbmc.LOGDEBUG)
             self._notify("invalid_response")
         finally:
             if not resolved:
@@ -189,7 +189,7 @@ class EBibliocat:
         except EfilmError as error:
             if error.message not in ("network_error", "service_error", "invalid_response"):
                 raise
-            xbmc.log("eFilm list directory unavailable; using fallback", xbmc.LOGWARNING)
+            xbmc.log("eFilm list directory unavailable; using fallback", xbmc.LOGDEBUG)
         return Home.getList(self.strs)
 
     def listCollection(self, list_id, page=1):

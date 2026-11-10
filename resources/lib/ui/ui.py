@@ -9,12 +9,12 @@ import xbmcgui
 import xbmcplugin
 import xbmcvfs
 
-from resources.lib.ebibliocat import Playback
-from resources.lib.ebibliocat.EBibliocat import EBibliocat
-from resources.lib.ebibliocat.Errors import Cancelled, EfilmError
-from resources.lib.ebibliocat.Validation import positive_id
-from resources.lib.utils.Utils import buildUrl
-from resources.lib.video.FolderVideo import FolderVideo
+from resources.lib.ebibliocat import playback as Playback
+from resources.lib.ebibliocat.ebibliocat import EBibliocat
+from resources.lib.ebibliocat.errors import Cancelled, EfilmError
+from resources.lib.ebibliocat.validation import positive_id
+from resources.lib.utils.utils import buildUrl
+from resources.lib.video.foldervideo import FolderVideo
 
 
 class UI:
@@ -86,11 +86,11 @@ class UI:
         except Cancelled:
             pass
         except EfilmError as error:
-            xbmc.log("eFilm operation failed: " + error.message, xbmc.LOGWARNING)
+            xbmc.log("eFilm operation failed: " + error.message, xbmc.LOGDEBUG)
             self._notice(error.message, error=True)
         except (ValueError, TypeError, KeyError, AttributeError, OSError):
             # No arbitrary exception text, arguments, or signed URLs enter diagnostics.
-            xbmc.log("eFilm operation failed: invalid data or local I/O", xbmc.LOGERROR)
+            xbmc.log("eFilm operation failed: invalid data or local I/O", xbmc.LOGDEBUG)
             self._notice("invalid_response", error=True)
         finally:
             if not self._finished:

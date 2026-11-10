@@ -4,8 +4,8 @@ import contextlib
 import time
 from pathlib import Path
 
-from resources.lib.ebibliocat.Errors import Cancelled, EfilmError
-from resources.lib.ebibliocat.Storage import file_lock, read_json, write_json
+from resources.lib.ebibliocat.errors import Cancelled, EfilmError
+from resources.lib.ebibliocat.storage import file_lock, read_json, write_json
 
 SCHEMA = 1
 

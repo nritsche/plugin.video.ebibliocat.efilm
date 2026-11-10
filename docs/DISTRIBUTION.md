@@ -35,4 +35,4 @@ The resulting feed is in `dist/repository/`. The builder performs no network req
 
 ## Official catalog preparation
 
-See [KODI_SUBMISSION.md](KODI_SUBMISSION.md) for the v0.2.2 candidate, official checker findings, and the remaining fork/authentication step. The candidate is not an opened upstream PR. Repository-owner settings are described in [GITHUB_SECURITY.md](GITHUB_SECURITY.md).
+See [KODI_SUBMISSION.md](KODI_SUBMISSION.md) for the v0.2.3 submission candidate, successful official checker result, and upstream review status. Repository-owner settings are described in [GITHUB_SECURITY.md](GITHUB_SECURITY.md).

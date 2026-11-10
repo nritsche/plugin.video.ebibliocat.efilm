@@ -6,9 +6,9 @@ from tests.kodi_stubs import Addon, install
 
 install()
 
-from resources.lib.ebibliocat.Catalog import episode_product, movie_page, movie_selection, video_from_product
-from resources.lib.ebibliocat.EBibliocat import EBibliocat
-from resources.lib.ebibliocat.Errors import EfilmError
+from resources.lib.ebibliocat.catalog import episode_product, movie_page, movie_selection, video_from_product
+from resources.lib.ebibliocat.ebibliocat import EBibliocat
+from resources.lib.ebibliocat.errors import EfilmError
 
 
 def movie(identifier=1, name="Title", **extra):
